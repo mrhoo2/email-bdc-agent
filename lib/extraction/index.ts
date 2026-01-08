@@ -8,6 +8,7 @@
 import { createAIProvider } from "@/lib/ai";
 import type { ParsedEmail } from "@/lib/gmail/types";
 import type { ParsedEmailInput, ExtractedData as AIExtractedData } from "@/lib/ai/types";
+import { inferSellerFromEmail } from "@/lib/sellers";
 import {
   safeValidateExtractedData,
   type ExtractedData,
@@ -68,8 +69,17 @@ export async function extractEntitiesFromEmail(
     // Call Gemini 3 Pro for extraction
     const result = await provider.extractEntities(emailInput);
 
+    // Infer seller from email recipients (no AI needed)
+    const inferredSeller = inferSellerFromEmail({
+      to: email.to,
+      cc: email.cc,
+    });
+
     // Validate the result with Zod
-    const validation = safeValidateExtractedData(result);
+    const validation = safeValidateExtractedData({
+      ...result,
+      inferredSeller,
+    });
 
     if (validation.success && validation.data) {
       return {
@@ -86,6 +96,7 @@ export async function extractEntitiesFromEmail(
       success: true,
       data: {
         ...result,
+        inferredSeller,
         extractionNotes: [
           ...(result.extractionNotes || []),
           "Warning: Some fields failed validation",
@@ -134,7 +145,17 @@ export async function extractEntitiesFromRaw(
     });
 
     const result = await provider.extractEntities(emailData);
-    const validation = safeValidateExtractedData(result);
+
+    // Infer seller from email recipients (no AI needed)
+    const inferredSeller = inferSellerFromEmail({
+      to: emailData.to,
+      cc: emailData.cc,
+    });
+
+    const validation = safeValidateExtractedData({
+      ...result,
+      inferredSeller,
+    });
 
     if (validation.success && validation.data) {
       return {
@@ -147,6 +168,7 @@ export async function extractEntitiesFromRaw(
       success: true,
       data: {
         ...result,
+        inferredSeller,
         extractionNotes: [
           ...(result.extractionNotes || []),
           "Warning: Some fields failed validation",

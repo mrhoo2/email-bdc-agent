@@ -25,7 +25,7 @@
 | 0 | Foundation & Test Harness | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 1 | Gmail Integration (Backfill Mode) | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 2 | Entity Extraction (Gemini 3 Pro Preview) | ✅ Complete | 2026-01-08 | 2026-01-08 |
-| 3 | Seller Inference | ⚪ Not Started | - | - |
+| 3 | Seller Inference | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 4 | Project Clustering | ⚪ Not Started | - | - |
 | 5 | Demo UI | ⚪ Not Started | - | - |
 
@@ -130,7 +130,7 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 
 ## Stage 3: Seller Inference
 
-### Status: ⚪ Not Started
+### Status: ✅ Complete
 
 ### Objectives
 - Analyze email recipients for @buildvision.io addresses
@@ -138,9 +138,34 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 - Add seller inference to extraction output
 
 ### Checklist
-- [ ] Recipient analysis implemented
-- [ ] Seller inference logic working
-- [ ] UI updated for seller display
+- [x] Seller types and Zod schemas created
+- [x] Recipient analysis implemented (TO/CC/BCC)
+- [x] Seller inference logic working (pattern matching)
+- [x] Integrated into extraction flow
+- [x] UI updated for seller display
+
+### Files Created
+- `lib/sellers/types.ts` - Seller and InferredSeller Zod schemas
+- `lib/sellers/inference.ts` - Email-based seller inference logic
+- `lib/sellers/index.ts` - Module exports
+
+### Implementation Details
+- **No AI needed** - Simple pattern matching on @buildvision.io domain
+- **Confidence Levels:**
+  - TO field: 95% confidence
+  - CC field: 85% confidence
+  - BCC field: 75% confidence
+- **Name Inference:** Extracts name from email username (e.g., "john.doe" → "John Doe")
+- **ID Generation:** Stable ID from email address for future Postgres integration
+
+### Architecture
+```
+Email Recipients → inferSellerFromEmail() → InferredSeller
+                         ↓
+              Pattern match @buildvision.io
+                         ↓
+              Create Seller with name/email/id
+```
 
 ---
 

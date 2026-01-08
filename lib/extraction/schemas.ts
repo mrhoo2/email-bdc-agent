@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { InferredSellerSchema } from "@/lib/sellers/types";
 
 // ============================================
 // Base Schemas
@@ -56,6 +57,7 @@ export const ExtractedDataSchema = z.object({
   purchaser: PurchaserIdentitySchema.nullable(),
   projectSignals: ProjectSignalsSchema.nullable(),
   bidDueDates: z.array(BidDueDateSchema),
+  inferredSeller: InferredSellerSchema.nullable().optional(),
   extractionNotes: z.array(z.string()),
 });
 

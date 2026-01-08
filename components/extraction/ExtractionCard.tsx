@@ -11,6 +11,7 @@ import { useState } from "react";
 import {
   Building2,
   User,
+  UserCircle,
   Mail,
   Phone,
   MapPin,
@@ -23,6 +24,7 @@ import {
   HardHat,
   Pencil,
   Target,
+  Info,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -219,6 +221,11 @@ export function ExtractionCard({
 
             {/* Bid Due Dates */}
             <BidDatesSection bidDueDates={extractedData.bidDueDates} />
+
+            <Separator />
+
+            {/* Inferred Seller */}
+            <SellerSection inferredSeller={extractedData.inferredSeller} />
 
             {/* Extraction Notes */}
             {extractedData.extractionNotes.length > 0 && (
@@ -470,6 +477,78 @@ function BidDatesSection({
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function SellerSection({
+  inferredSeller,
+}: {
+  inferredSeller: ExtractedData["inferredSeller"];
+}) {
+  if (!inferredSeller || !inferredSeller.seller) {
+    return (
+      <div>
+        <h3 className="text-detail font-semibold mb-2 flex items-center gap-2">
+          <UserCircle className="w-4 h-4" />
+          Assigned Seller
+        </h3>
+        <p className="text-micro text-muted-foreground italic">
+          {inferredSeller?.reasoning || "No BuildVision seller found in recipients"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-detail font-semibold flex items-center gap-2">
+          <UserCircle className="w-4 h-4" />
+          Assigned Seller
+        </h3>
+        <Badge
+          variant={getConfidenceBadgeVariant(inferredSeller.confidence)}
+          className="text-micro"
+        >
+          {formatConfidence(inferredSeller.confidence)}
+        </Badge>
+      </div>
+
+      <div className="space-y-2 pl-6">
+        <p className="text-body-sm font-medium">{inferredSeller.seller.name}</p>
+
+        <div className="flex items-center gap-2 text-micro text-muted-foreground">
+          <Mail className="w-3 h-3" />
+          {inferredSeller.seller.email}
+        </div>
+
+        {inferredSeller.seller.territory && (
+          <div className="flex items-center gap-2 text-micro text-muted-foreground">
+            <MapPin className="w-3 h-3" />
+            {inferredSeller.seller.territory}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 text-micro text-muted-foreground mt-2">
+          <Info className="w-3 h-3" />
+          <span className="italic">{inferredSeller.reasoning}</span>
+        </div>
+
+        <div className="mt-1">
+          <span
+            className={`inline-block px-2 py-0.5 rounded text-micro ${
+              inferredSeller.source === "email_recipient"
+                ? "bg-blue-500/10 text-blue-700"
+                : inferredSeller.source === "postgres_mapping"
+                ? "bg-purple-500/10 text-purple-700"
+                : "bg-yellow-500/10 text-yellow-700"
+            }`}
+          >
+            {inferredSeller.source.replace("_", " ")}
+          </span>
+        </div>
       </div>
     </div>
   );

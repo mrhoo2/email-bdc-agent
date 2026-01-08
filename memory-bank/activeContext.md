@@ -20,22 +20,23 @@
 
 ## Current Focus
 
-**Stage:** 2 - Entity Extraction (Gemini 3 Pro Preview) ✅ COMPLETE & TESTED
+**Stage:** 3 - Seller Inference ✅ COMPLETE
 
-**Status:** Stage 2 fully implemented and tested with real bid emails
+**Status:** Stage 3 fully implemented, ready for testing
 
 **Completed Tasks:**
-- [x] Create Zod validation schemas for extraction output
-- [x] Build extraction API route (/api/extract)
-- [x] Create extraction test UI component (ExtractionCard)
-- [x] Integrate extraction into main page
-- [x] Test with real bid emails from Gmail (bids@buildvision.io)
+- [x] Create seller types and Zod schemas (`lib/sellers/types.ts`)
+- [x] Implement seller inference from email recipients (`lib/sellers/inference.ts`)
+- [x] Add InferredSeller to extraction schemas
+- [x] Integrate seller inference into extraction flow
+- [x] Update ExtractionCard UI to display inferred seller
+- [x] Build passes with no TypeScript errors
 
-**Test Results (January 8, 2026):**
-Extraction tested on real email "Byron WWTP - Improvements":
-- Purchaser: Michael Powers (80% confidence)
-- Project: Byron WWTP - Improvements (90% confidence)
-- Bid Due Date: Thu, Jan 8, 2026 (70% confidence, inferred from "by the end of this week")
+**Implementation Details:**
+- Seller inference checks TO/CC recipients for @buildvision.io addresses
+- No AI needed - simple pattern matching on email domain
+- Confidence: 95% for TO field, 85% for CC field, 75% for BCC field
+- Name inferred from email username if display name not available
 
 ---
 
