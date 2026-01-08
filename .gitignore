@@ -42,6 +42,9 @@ coverage/
 tokens/
 *.token.json
 
+# Memory bank files with sensitive info (local only)
+memory-bank/techContext.md
+
 # Vercel
 .vercel
 

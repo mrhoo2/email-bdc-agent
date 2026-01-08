@@ -11,7 +11,8 @@
 | `activeContext.md` | Current focus, blockers, decisions-in-progress |
 | `progress.md` | Stage completion status, test results, iteration notes (this file) |
 | `systemPatterns.md` | Data models, architecture decisions, extraction patterns |
-| `techContext.md` | Dependencies, environment setup, API configurations |
+| `techContext.md` | Dependencies, environment setup, API configs (local, gitignored) |
+| `techContext.template.md` | Template for techContext.md (public, committed) |
 | `project-template.md` | Business requirements, scope, goals |
 | `bv-style-guide.md` | BuildVision design system reference |
 
@@ -21,7 +22,7 @@
 
 | Stage | Name | Status | Started | Completed |
 |-------|------|--------|---------|-----------|
-| 0 | Foundation & Test Harness | 🟡 In Progress | 2026-01-08 | - |
+| 0 | Foundation & Test Harness | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 1 | Gmail Integration (Backfill Mode) | ⚪ Not Started | - | - |
 | 2 | Entity Extraction (Multi-Model) | ⚪ Not Started | - | - |
 | 3 | Seller Inference | ⚪ Not Started | - | - |

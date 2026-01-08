@@ -160,9 +160,12 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 | **Repository** | `git@github.com:mrhoo2/email-bdc-agent.git` |
 | **User Email** | `mrhoo@hey.com` |
 | **User Name** | `mrhoo2` |
-| **Authentication** | SSH via keychain |
+| **Authentication** | SSH via personal key (`id_ed25519_personal`) |
+| **SSH Key** | `~/.ssh/id_ed25519_personal` |
 
 ### Initial Setup Commands
+
+**IMPORTANT:** When using a non-default SSH key (e.g., personal vs work account), you MUST configure the `core.sshCommand` to specify which key to use. Otherwise, git will use the default SSH key.
 
 ```bash
 # Initialize git repository
@@ -171,6 +174,10 @@ git init
 # Configure user for this repository
 git config user.email "mrhoo@hey.com"
 git config user.name "mrhoo2"
+
+# CRITICAL: Configure SSH to use the personal key for this repo
+# This ensures the correct GitHub account is used for authentication
+git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o IdentitiesOnly=yes"
 
 # Add remote origin
 git remote add origin git@github.com:mrhoo2/email-bdc-agent.git
@@ -181,17 +188,57 @@ git commit -m "Initial commit: project setup"
 git push -u origin main
 ```
 
-### SSH Configuration
+### SSH Key Selection
 
-Ensure `~/.ssh/config` has:
+This machine has multiple GitHub accounts with different SSH keys:
+
+| Key File | Associated Account | Purpose |
+|----------|-------------------|---------|
+| `~/.ssh/id_ed25519` | (default) | May be shared or default |
+| `~/.ssh/id_ed25519_buildvision` | mackenzie-bv | BuildVision work account |
+| `~/.ssh/id_ed25519_personal` | mrhoo2 | Personal account |
+
+**For mrhoo2 repos:** Always use `id_ed25519_personal`:
+```bash
+git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_personal -o IdentitiesOnly=yes"
+```
+
+**For BuildVision work repos:** Use `id_ed25519_buildvision`:
+```bash
+git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_buildvision -o IdentitiesOnly=yes"
+```
+
+### SSH Configuration (Alternative)
+
+Alternatively, you can configure `~/.ssh/config` with host aliases:
 
 ```
-Host github.com
+# Personal GitHub account (mrhoo2)
+Host github.com-personal
   HostName github.com
   User git
-  IdentityFile ~/.ssh/id_ed25519
+  IdentityFile ~/.ssh/id_ed25519_personal
+  IdentitiesOnly yes
   UseKeychain yes
   AddKeysToAgent yes
+
+# BuildVision work account
+Host github.com-bv
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_buildvision
+  IdentitiesOnly yes
+  UseKeychain yes
+  AddKeysToAgent yes
+```
+
+Then use the alias in the remote URL:
+```bash
+# For personal repos
+git remote add origin git@github.com-personal:mrhoo2/repo-name.git
+
+# For work repos  
+git remote add origin git@github.com-bv:buildvision/repo-name.git
 ```
 
 ### .gitignore

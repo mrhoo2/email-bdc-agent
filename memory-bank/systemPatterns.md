@@ -11,7 +11,8 @@
 | `activeContext.md` | Current focus, blockers, decisions-in-progress |
 | `progress.md` | Stage completion status, test results, iteration notes |
 | `systemPatterns.md` | Data models, architecture decisions, extraction patterns (this file) |
-| `techContext.md` | Dependencies, environment setup, API configurations |
+| `techContext.md` | Dependencies, environment setup, API configs (local, gitignored) |
+| `techContext.template.md` | Template for techContext.md (public, committed) |
 | `project-template.md` | Business requirements, scope, goals |
 | `bv-style-guide.md` | BuildVision design system reference |
 
