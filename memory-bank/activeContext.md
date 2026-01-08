@@ -20,25 +20,27 @@
 
 ## Current Focus
 
-**Stage:** 4 - Project Clustering ✅ COMPLETE
+**Stage:** 5 - Demo UI ✅ COMPLETE
 
-**Status:** Stage 4 fully implemented with AI-assisted clustering
+**Status:** Stage 5 fully implemented with side-by-side panel layout
 
 **Completed Tasks:**
-- [x] Create clustering types and Zod schemas (`lib/clustering/types.ts`)
-- [x] Implement similarity calculation functions (`lib/clustering/similarity.ts`)
-- [x] Implement clustering service with AI and rule-based methods (`lib/clustering/index.ts`)
-- [x] Create /api/cluster API endpoint
-- [x] Add FAST_MODELS tier for speed-optimized tasks
-- [x] Add createFastAIProviderFromEnv to AI provider factory
+- [x] Copy Header from Takeoffs with BuildVision Labs branding
+- [x] Create bid list types (`lib/bids/types.ts`)
+- [x] Create date grouping utilities (`lib/bids/grouping.ts`)
+- [x] Build BidCard component with project/purchaser/seller display
+- [x] Build BidList component with date-based grouping
+- [x] Create EmailPanel component (combined list + viewer)
+- [x] Update main page with side-by-side layout
+- [x] Wire up data flow: Fetch → Extract → Cluster → Display
 - [x] Build passes with no TypeScript errors
 
 **Implementation Details:**
-- Hybrid approach: thread-based grouping + rule-based similarity + AI clustering
-- AI clustering uses fast-tier model (Gemini Flash) for speed
-- Similarity signals: subject (0.2), projectName (0.25), address (0.35), GC (0.1), engineer/architect (0.05 each)
-- Union-Find algorithm for rule-based clustering
-- Configurable similarity threshold (default 0.6)
+- **Header:** BuildVision logo + "Email BDC Agent" title + Process/Refresh buttons
+- **Left Panel (400px):** Email list with inline viewer (click to expand)
+- **Right Panel (flexible):** Bid list grouped by date (Today, Tomorrow, This Week, etc.)
+- **Data Flow:** Process Emails button triggers Extract → Cluster → createGroupedBidList()
+- **Bid Cards:** Show project name, address, bidder, seller, due date
 
 ---
 
@@ -79,18 +81,6 @@ All entities include confidence scores (0.0-1.0).
 | Google | `gemini-3-pro-preview` | ✅ Active - Primary extraction |
 | OpenAI | `gpt-5.2` | ⏸️ Available |
 | Anthropic | `claude-sonnet-4-5-20250929` | ⏸️ Available |
-
----
-
-## Next Stage: Stage 5 - Demo UI
-
-**Planned:**
-- [ ] Build bid list table view
-- [ ] Implement date-based grouping
-- [ ] Add manual refresh trigger
-- [ ] Display clustered projects with emails
-
-**Note:** Database persistence deferred - will integrate with main BuildVision app for production.
 
 ---
 
@@ -154,6 +144,14 @@ All entities include confidence scores (0.0-1.0).
 - Rule-based clustering with Union-Find
 - /api/cluster API endpoint
 
+### Stage 5: Demo UI ✅
+- BuildVision Labs Header (from Takeoffs)
+- Side-by-side panel layout
+- Left panel: EmailPanel (list + inline viewer)
+- Right panel: BidList grouped by date
+- Bid cards with project, bidder, seller, due date
+- Process Emails workflow (Extract → Cluster → Display)
+
 ---
 
 ## Notes
@@ -166,3 +164,4 @@ All entities include confidence scores (0.0-1.0).
 - Version: v0.2.0 (Stage 2 complete)
 - UI: 3-column layout - Email List | Email Viewer | Extraction Card
 *Session notes and context that should carry forward to next session.*
+

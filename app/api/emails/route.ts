@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Fetch labels list
     if (searchParams.get("labels") === "true") {
       const labels = await getLabels();
-      return NextResponse.json({ labels });
+      return NextResponse.json({ success: true, labels });
     }
 
     // Fetch single email by ID
@@ -54,11 +54,11 @@ export async function GET(request: NextRequest) {
       const email = await fetchEmailById(emailId);
       if (!email) {
         return NextResponse.json(
-          { error: "Email not found" },
+          { success: false, error: "Email not found" },
           { status: 404 }
         );
       }
-      return NextResponse.json({ email });
+      return NextResponse.json({ success: true, email });
     }
 
     // Fetch all emails (for backfill)
@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
       });
 
       return NextResponse.json({
+        success: true,
         emails,
         total: emails.length,
       });
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
       labelIds,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ success: true, ...result });
   } catch (error) {
     console.error("Error fetching emails:", error);
 

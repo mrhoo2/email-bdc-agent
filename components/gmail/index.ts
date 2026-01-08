@@ -6,3 +6,4 @@
 export { GmailConnectionCard } from "./GmailConnectionCard";
 export { EmailList } from "./EmailList";
 export { EmailViewer } from "./EmailViewer";
+export { default as EmailPanel } from "./EmailPanel";

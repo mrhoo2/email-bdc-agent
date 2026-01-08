@@ -27,7 +27,7 @@
 | 2 | Entity Extraction (Gemini 3 Pro Preview) | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 3 | Seller Inference | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 4 | Project Clustering | ✅ Complete | 2026-01-08 | 2026-01-08 |
-| 5 | Demo UI | ⚪ Not Started | - | - |
+| 5 | Demo UI | ✅ Complete | 2026-01-08 | 2026-01-08 |
 
 ---
 
@@ -224,12 +224,56 @@ Emails with ExtractedData → clusterEmails()
 
 ## Stage 5: Demo UI
 
-### Status: ⚪ Not Started
+### Status: ✅ Complete
 
 ### Objectives
-- Build bid list table view
-- Implement date-based grouping
-- Add manual refresh trigger
+- Build consistent BuildVision Labs UI
+- Side-by-side panel layout
+- Bid list grouped by date
+- Process Emails workflow
+
+### Checklist
+- [x] Copy Header from Takeoffs with BuildVision Labs branding
+- [x] Create bid list types (`lib/bids/types.ts`)
+- [x] Create date grouping utilities (`lib/bids/grouping.ts`)
+- [x] Build BidCard component with project/purchaser/seller display
+- [x] Build BidList component with date-based grouping
+- [x] Create EmailPanel component (combined list + viewer)
+- [x] Update main page with side-by-side layout
+- [x] Wire up data flow: Fetch → Extract → Cluster → Display
+
+### Files Created
+- `components/layout/Header.tsx` - BuildVision Labs header with logo
+- `components/layout/index.ts` - Layout component exports
+- `lib/bids/types.ts` - BidItem, BidGroup, DateGroup types
+- `lib/bids/grouping.ts` - Date grouping utilities (getDateGroup, createGroupedBidList)
+- `lib/bids/index.ts` - Bid module exports
+- `components/bids/BidCard.tsx` - Individual bid card display
+- `components/bids/BidList.tsx` - Grouped bid list with date headers
+- `components/bids/index.ts` - Bid component exports
+- `components/gmail/EmailPanel.tsx` - Combined email list + viewer panel
+
+### Implementation Details
+- **Layout:** Full-height side-by-side panels (400px left, flexible right)
+- **Header:** BuildVision logo from CDN, "Email BDC Agent" title, Process/Refresh buttons
+- **Left Panel:** Email list (scrollable) + inline email detail viewer
+- **Right Panel:** Bid list grouped by date (Overdue, Today, Tomorrow, This Week, etc.)
+- **Bid Cards:** Project name, address, bidder (purchaser), seller, due date
+- **Data Flow:** Process button → Extract each email → Cluster → createGroupedBidList()
+- **Progress Banner:** Shows extraction/clustering progress with cancel option
+
+### Architecture
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│ [Header: BuildVision Logo | Email BDC Agent | Process | Refresh]    │
+├───────────────────┬──────────────────────────────────────────────────┤
+│                   │                                                  │
+│  [EmailPanel]     │  [BidList]                                      │
+│  - Email List     │  - Date Group Headers                           │
+│  - Email Detail   │  - BidCard (project, bidder, seller, due)       │
+│                   │                                                  │
+└───────────────────┴──────────────────────────────────────────────────┘
+```
 
 ---
 
