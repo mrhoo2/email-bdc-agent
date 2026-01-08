@@ -58,7 +58,7 @@ export function BidList({ bidList, onEmailClick, isLoading }: BidListProps) {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Summary Header */}
       <div className="px-4 py-3 border-b border-neutral-200 bg-white">
         <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export function BidList({ bidList, onEmailClick, isLoading }: BidListProps) {
       </div>
 
       {/* Grouped Bid Cards */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-4 space-y-6">
           {bidList.groups.map((group) => (
             <div key={group.group}>

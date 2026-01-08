@@ -404,9 +404,9 @@ export default function Home() {
       )}
 
       {/* Main Content: Side-by-Side Panels */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left Panel: Email List + Viewer */}
-        <div className="w-[400px] flex-shrink-0 h-full overflow-hidden">
+        <div className="w-[400px] flex-shrink-0 h-full min-h-0">
           <EmailPanel
             isConnected={isGmailConnected}
             onConnectionRequired={() => setShowConnectionModal(true)}
@@ -419,7 +419,7 @@ export default function Home() {
         </div>
 
         {/* Right Panel: Bid List */}
-        <div className="flex-1 h-full overflow-hidden bg-neutral-100">
+        <div className="flex-1 h-full min-h-0 bg-neutral-100">
           <BidList
             bidList={bidList}
             onEmailClick={handleEmailClick}

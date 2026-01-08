@@ -104,7 +104,7 @@ export default function EmailPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-white border-r border-neutral-200">
+    <div className="h-full flex flex-col min-h-0 bg-white border-r border-neutral-200">
       {/* Panel Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 flex-shrink-0">
         <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function EmailPanel({
       </div>
 
       {/* Email List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="divide-y divide-neutral-100">
           {isLoading && emails.length === 0 ? (
             <div className="p-8 text-center text-sm text-neutral-500">
