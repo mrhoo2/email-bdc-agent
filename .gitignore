@@ -41,6 +41,7 @@ coverage/
 # Gmail tokens (OAuth)
 tokens/
 *.token.json
+.gmail-tokens.json
 
 # Memory bank files with sensitive info (local only)
 memory-bank/techContext.md

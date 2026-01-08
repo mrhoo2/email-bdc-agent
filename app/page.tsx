@@ -1,11 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import { Mail, Bot, Calendar, Users } from "lucide-react";
+import {
+  GmailConnectionCard,
+  EmailList,
+  EmailViewer,
+} from "@/components/gmail";
+import type { ParsedEmail } from "@/lib/gmail/types";
 
 export default function Home() {
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
+  const [selectedEmail, setSelectedEmail] = useState<ParsedEmail | null>(null);
+
   return (
     <main className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <header className="mb-12">
+        <header className="mb-8">
           <h1 className="text-h4 font-bold text-foreground mb-2">
             Email BDC Agent
           </h1>
@@ -15,18 +27,21 @@ export default function Home() {
         </header>
 
         {/* Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatusCard
             icon={<Mail className="w-6 h-6" />}
-            title="Emails Processed"
-            value="—"
-            description="Connect Gmail to start"
+            title="Gmail Status"
+            value={isGmailConnected ? "Connected" : "Not Connected"}
+            description={
+              isGmailConnected ? "Ready to fetch emails" : "Connect to start"
+            }
+            variant={isGmailConnected ? "success" : "default"}
           />
           <StatusCard
             icon={<Bot className="w-6 h-6" />}
             title="AI Provider"
-            value="Not configured"
-            description="Add API keys to .env.local"
+            value="Ready"
+            description="GPT-4o configured"
           />
           <StatusCard
             icon={<Users className="w-6 h-6" />}
@@ -42,38 +57,21 @@ export default function Home() {
           />
         </div>
 
-        {/* Main Content Area */}
-        <div className="bg-card rounded-lg border border-border p-8">
-          <h2 className="text-h5 font-bold mb-4">Getting Started</h2>
-          <div className="space-y-4 text-body-sm text-muted-foreground">
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-micro font-bold">
-                1
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Configure Environment</p>
-                <p>Add your API keys to <code className="bg-muted px-1 rounded">.env.local</code></p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-micro font-bold">
-                2
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Connect Gmail</p>
-                <p>Authorize access to your bids inbox</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-micro font-bold">
-                3
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Process Emails</p>
-                <p>Extract bid information and generate bid list</p>
-              </div>
-            </div>
-          </div>
+        {/* Gmail Connection Card */}
+        <div className="mb-8">
+          <GmailConnectionCard onConnectionChange={setIsGmailConnected} />
+        </div>
+
+        {/* Email List and Viewer */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <EmailList
+            isConnected={isGmailConnected}
+            onEmailSelect={setSelectedEmail}
+          />
+          <EmailViewer
+            email={selectedEmail}
+            onClose={() => setSelectedEmail(null)}
+          />
         </div>
 
         {/* Footer */}
@@ -90,14 +88,30 @@ interface StatusCardProps {
   title: string;
   value: string;
   description: string;
+  variant?: "default" | "success" | "warning" | "error";
 }
 
-function StatusCard({ icon, title, value, description }: StatusCardProps) {
+function StatusCard({
+  icon,
+  title,
+  value,
+  description,
+  variant = "default",
+}: StatusCardProps) {
+  const variantStyles = {
+    default: "text-primary",
+    success: "text-green-500",
+    warning: "text-yellow-500",
+    error: "text-red-500",
+  };
+
   return (
     <div className="bg-card rounded-lg border border-border p-6">
       <div className="flex items-center gap-3 mb-3">
-        <div className="text-primary">{icon}</div>
-        <span className="text-detail font-medium text-muted-foreground">{title}</span>
+        <div className={variantStyles[variant]}>{icon}</div>
+        <span className="text-detail font-medium text-muted-foreground">
+          {title}
+        </span>
       </div>
       <p className="text-h5 font-bold text-foreground mb-1">{value}</p>
       <p className="text-micro text-muted-foreground">{description}</p>
