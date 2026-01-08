@@ -88,9 +88,18 @@ export interface BidDueDate {
 }
 
 // Model configurations (updated January 2026)
+
+// Pro tier models - high capability, best for complex extraction
 export const DEFAULT_MODELS: Record<AIProviderName, string> = {
   openai: "gpt-5.2",
   google: "gemini-3-pro-preview",
+  anthropic: "claude-opus-4-5-20251101",
+};
+
+// Fast tier models - speed optimized for bulk processing
+export const FAST_MODELS: Record<AIProviderName, string> = {
+  openai: "gpt-5-mini",
+  google: "gemini-3-flash-preview",
   anthropic: "claude-sonnet-4-5-20250929",
 };
 

@@ -20,23 +20,25 @@
 
 ## Current Focus
 
-**Stage:** 3 - Seller Inference ✅ COMPLETE
+**Stage:** 4 - Project Clustering ✅ COMPLETE
 
-**Status:** Stage 3 fully implemented, ready for testing
+**Status:** Stage 4 fully implemented with AI-assisted clustering
 
 **Completed Tasks:**
-- [x] Create seller types and Zod schemas (`lib/sellers/types.ts`)
-- [x] Implement seller inference from email recipients (`lib/sellers/inference.ts`)
-- [x] Add InferredSeller to extraction schemas
-- [x] Integrate seller inference into extraction flow
-- [x] Update ExtractionCard UI to display inferred seller
+- [x] Create clustering types and Zod schemas (`lib/clustering/types.ts`)
+- [x] Implement similarity calculation functions (`lib/clustering/similarity.ts`)
+- [x] Implement clustering service with AI and rule-based methods (`lib/clustering/index.ts`)
+- [x] Create /api/cluster API endpoint
+- [x] Add FAST_MODELS tier for speed-optimized tasks
+- [x] Add createFastAIProviderFromEnv to AI provider factory
 - [x] Build passes with no TypeScript errors
 
 **Implementation Details:**
-- Seller inference checks TO/CC recipients for @buildvision.io addresses
-- No AI needed - simple pattern matching on email domain
-- Confidence: 95% for TO field, 85% for CC field, 75% for BCC field
-- Name inferred from email username if display name not available
+- Hybrid approach: thread-based grouping + rule-based similarity + AI clustering
+- AI clustering uses fast-tier model (Gemini Flash) for speed
+- Similarity signals: subject (0.2), projectName (0.25), address (0.35), GC (0.1), engineer/architect (0.05 each)
+- Union-Find algorithm for rule-based clustering
+- Configurable similarity threshold (default 0.6)
 
 ---
 
@@ -80,13 +82,13 @@ All entities include confidence scores (0.0-1.0).
 
 ---
 
-## Next Stage: Stage 3 - Seller Inference
+## Next Stage: Stage 5 - Demo UI
 
 **Planned:**
-- [ ] Analyze email recipients for @buildvision.io addresses
-- [ ] Map recipients to sales representatives
-- [ ] Add seller inference to extraction output
-- [ ] Update UI to display inferred seller
+- [ ] Build bid list table view
+- [ ] Implement date-based grouping
+- [ ] Add manual refresh trigger
+- [ ] Display clustered projects with emails
 
 **Note:** Database persistence deferred - will integrate with main BuildVision app for production.
 
@@ -96,10 +98,12 @@ All entities include confidence scores (0.0-1.0).
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-08 | Stage 4 complete | AI-assisted clustering implemented |
+| 2026-01-08 | Use Gemini Flash for clustering | Speed optimized for bulk processing |
+| 2026-01-08 | Added FAST_MODELS tier | Centralized fast model config for speed tasks |
+| 2026-01-08 | Hybrid clustering approach | Rule-based + AI for best accuracy |
 | 2026-01-08 | Stage 2 complete and tested | Extraction working with real emails |
 | 2026-01-08 | Skip database persistence | Will integrate with main app for production |
-| 2026-01-08 | Focus on Gemini 3 Pro Preview only | Faster iteration, single model first |
-| 2026-01-08 | AI Models Reference added to global template | Standardize model names across projects |
 
 ---
 
@@ -136,6 +140,19 @@ All entities include confidence scores (0.0-1.0).
 - ExtractionCard UI component
 - Integration with main page (3-column layout)
 - Tested with real bid emails
+
+### Stage 3: Seller Inference ✅
+- Seller types and Zod schemas
+- Email recipient pattern matching
+- @buildvision.io domain detection
+- Confidence scoring by field type
+
+### Stage 4: Project Clustering ✅
+- Clustering types and schemas
+- Similarity calculation (string-similarity)
+- AI-assisted clustering with Gemini Flash
+- Rule-based clustering with Union-Find
+- /api/cluster API endpoint
 
 ---
 

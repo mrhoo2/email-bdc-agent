@@ -26,7 +26,7 @@
 | 1 | Gmail Integration (Backfill Mode) | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 2 | Entity Extraction (Gemini 3 Pro Preview) | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 3 | Seller Inference | ✅ Complete | 2026-01-08 | 2026-01-08 |
-| 4 | Project Clustering | ⚪ Not Started | - | - |
+| 4 | Project Clustering | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 5 | Demo UI | ⚪ Not Started | - | - |
 
 ---
@@ -171,12 +171,54 @@ Email Recipients → inferSellerFromEmail() → InferredSeller
 
 ## Stage 4: Project Clustering
 
-### Status: ⚪ Not Started
+### Status: ✅ Complete
 
 ### Objectives
 - Design similarity algorithm
 - Implement project clustering service
-- Group related emails
+- Group related emails using AI + rule-based approach
+
+### Checklist
+- [x] Clustering types and Zod schemas created
+- [x] Similarity calculation functions implemented
+- [x] AI-assisted clustering with Gemini Flash
+- [x] Rule-based clustering with Union-Find algorithm
+- [x] /api/cluster API endpoint created
+- [x] FAST_MODELS tier added to AI provider
+- [x] createFastAIProviderFromEnv function added
+
+### Files Created
+- `lib/clustering/types.ts` - ProjectCluster, ClusteringResult, EmailForClustering schemas
+- `lib/clustering/similarity.ts` - String similarity, signal weighting, matrix calculation
+- `lib/clustering/index.ts` - Main clustering service with AI + rule-based methods
+- `app/api/cluster/route.ts` - POST endpoint for clustering
+
+### Implementation Details
+- **Hybrid Approach:**
+  1. Thread-based grouping (emails in same thread = same project)
+  2. Rule-based similarity scoring (weighted signals)
+  3. AI-assisted clustering for intelligent grouping
+
+- **Similarity Signals:** subject (0.2), projectName (0.25), address (0.35), GC (0.1), engineer (0.05), architect (0.05)
+- **AI Model:** `gemini-3-flash-preview` (fast tier for speed)
+- **Similarity Threshold:** 0.6 (configurable)
+- **Batch Processing:** Max 50 emails per AI call
+
+### Architecture
+```
+Emails with ExtractedData → clusterEmails()
+                                   ↓
+                    ┌──────────────┴──────────────┐
+                    ↓                             ↓
+           useAI: true                    useAI: false
+                    ↓                             ↓
+         aiClusterEmails()           clusterEmailsRuleBased()
+    (Gemini Flash processing)         (Union-Find algorithm)
+                    ↓                             ↓
+                    └──────────────┬──────────────┘
+                                   ↓
+                          ProjectCluster[]
+```
 
 ---
 
@@ -228,6 +270,9 @@ Email Recipients → inferSellerFromEmail() → InferredSeller
 | 2 | Zod validation ensures AI output conforms to expected schema |
 | 2 | Model names must be exact API identifiers (e.g., `gemini-3-pro-preview` not `gemini-3-pro`) |
 | 2 | Confidence scores help identify uncertain extractions |
+| 4 | Use fast-tier models for bulk processing tasks |
+| 4 | Centralize AI provider creation for consistent model selection |
+| 4 | Union-Find is efficient for clustering with transitive relationships |
 
 ---
 

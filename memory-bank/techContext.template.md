@@ -234,4 +234,20 @@ https://www.googleapis.com/auth/gmail.readonly
 - [ ] Copy `.env.example` to `.env.local` and fill in API keys
 - [ ] Run `bun install`
 - [ ] Configure git with correct SSH key
-- [ ] Run `bun dev`
+- [ ] Run `bun dev` (manually in separate terminal)
+
+---
+
+## AI Assistant Guidelines
+
+**Development Server:**
+- Do NOT run `bun dev` or start the development server - user manages this in a separate terminal
+- Do NOT execute commands that open URLs (e.g., `open localhost:3000`)
+- Building (`bun run build`) is fine for type checking and production builds
+
+**Allowed Commands:**
+- `bun install` - Installing dependencies
+- `bun run build` - Building for production / type checking
+- `bun lint` - Linting
+- `git` commands - Version control operations
+- File operations - Reading, writing, editing files
