@@ -1,5 +1,7 @@
 /**
  * OpenAI Provider Implementation
+ * Updated January 2026 for GPT-5.2
+ * NOTE: GPT-5.2 extraction deferred to future iteration - focusing on Gemini 3 first
  */
 
 import OpenAI from "openai";
@@ -19,7 +21,8 @@ export function createOpenAIProvider(config: AIProviderConfig): AIProvider {
     apiKey: config.apiKey,
   });
 
-  const model = config.model || "gpt-4o";
+  // Default to GPT-5.2 (January 2026)
+  const model = config.model || "gpt-5.2";
   const temperature = config.temperature ?? 0.1;
   const maxTokens = config.maxTokens ?? 4096;
 

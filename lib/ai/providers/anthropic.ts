@@ -1,5 +1,7 @@
 /**
  * Anthropic Claude Provider Implementation
+ * Updated January 2026 for Claude 4.5 Sonnet
+ * NOTE: Claude 4.5 Sonnet extraction deferred to future iteration - focusing on Gemini 3 first
  */
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -19,7 +21,8 @@ export function createAnthropicProvider(config: AIProviderConfig): AIProvider {
     apiKey: config.apiKey,
   });
 
-  const model = config.model || "claude-3-5-sonnet-20241022";
+  // Default to Claude 4.5 Sonnet (January 2026)
+  const model = config.model || "claude-4.5-sonnet";
   const temperature = config.temperature ?? 0.1;
   const maxTokens = config.maxTokens ?? 4096;
 

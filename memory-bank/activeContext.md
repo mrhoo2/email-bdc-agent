@@ -20,26 +20,30 @@
 
 ## Current Focus
 
-**Stage:** 1 - Gmail Integration (Code Complete)
+**Stage:** 2 - Entity Extraction (Gemini 3 Pro)
 
-**Status:** Implementation complete, awaiting Google Cloud credentials for live testing
+**Status:** Starting implementation
 
-**Completed Tasks (Stage 1):**
-- [x] Gmail OAuth2 authentication flow (lib/gmail/auth.ts)
-- [x] Token management with automatic refresh
-- [x] Email fetching service with pagination (lib/gmail/index.ts)
-- [x] Email parsing (HTML/plain text body extraction)
-- [x] API routes for OAuth and email fetching
-- [x] UI components (GmailConnectionCard, EmailList, EmailViewer)
-- [x] Integrated components into main page
+**Active Tasks:**
+- [ ] Create Zod validation schemas for extraction output
+- [ ] Build extraction API route (/api/extract)
+- [ ] Create extraction test UI component
+- [ ] Test with real bid emails from Gmail
 
-**Next Steps:**
-- [ ] Set up Google Cloud Project and enable Gmail API
-- [ ] Create OAuth credentials and add to .env.local
-- [ ] Test OAuth flow end-to-end with bids@buildvision.io
-- [ ] Begin Stage 2: Entity Extraction
+**Next Milestone:** Extract entities from bid emails using Gemini 3 Pro
 
-**Next Milestone:** Complete live testing of Gmail integration, then start Stage 2
+---
+
+## Scope Decision (2026-01-08)
+
+**Focus on Gemini 3 Pro only** for initial extraction implementation.
+
+**Deferred to Future Iteration:**
+- GPT-5.2 extraction implementation
+- Claude 4.5 Sonnet extraction implementation
+- Multi-model comparison/benchmarking UI
+
+**Rationale:** Faster iteration - get extraction working with one model first, then expand.
 
 ---
 
@@ -47,55 +51,63 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-08 | Focus on Gemini 3 Pro only | Faster iteration, single model first |
+| 2026-01-08 | Update to 2026 AI models | GPT-5.2, Gemini 3 Pro, Claude 4.5 Sonnet |
 | 2026-01-08 | In-memory token storage for MVP | Simple approach, no database needed for demo |
-| 2026-01-08 | Batch email fetching with pagination | Handles large inboxes efficiently |
-| 2026-01-08 | Base64url decoding for email bodies | Gmail API returns bodies in base64url format |
-| 2026-01-08 | Basic HTML sanitization for display | Security - removes scripts and event handlers |
-| 2026-01-08 | Use AI provider abstraction | Enable quick switching between GPT/Gemini/Claude |
+| 2026-01-08 | File-based token persistence for dev | Survives hot reloads |
 | 2026-01-08 | Backfill-first approach | MVP processes historical inbox, no real-time polling |
+
+---
+
+## AI Model Configuration (January 2026)
+
+| Provider | Model | Status |
+|----------|-------|--------|
+| Google | gemini-3-pro | 🔄 Active - Primary extraction |
+| OpenAI | gpt-5.2 | ⏸️ Deferred |
+| Anthropic | claude-4.5-sonnet | ⏸️ Deferred |
 
 ---
 
 ## Open Questions
 
-- None currently - ready to test with live credentials
+- None currently
 
 ---
 
 ## Blockers
 
-- **Google Cloud Setup Required:** Need to create OAuth credentials in Google Cloud Console
-  - Create project, enable Gmail API
-  - Configure OAuth consent screen
-  - Generate OAuth client ID/secret
-  - Add credentials to .env.local
+- None currently
 
 ---
 
-## Files Created (Stage 1)
+## Completed Stages
 
-### Gmail Service Layer
-- `lib/gmail/types.ts` - Type definitions for Gmail API
-- `lib/gmail/auth.ts` - OAuth2 authentication and token management
-- `lib/gmail/index.ts` - Email fetching and parsing service
+### Stage 0: Foundation ✅
+- Next.js 15 + TypeScript
+- ShadCN UI (new-york style)
+- AI provider abstraction
+- BuildVision design tokens
+
+### Stage 1: Gmail Integration ✅
+- OAuth2 authentication
+- Email fetching with pagination
+- Email viewer component
+- Token persistence (file-based)
+
+---
+
+## Files to Create (Stage 2)
+
+### Extraction Service
+- `lib/extraction/schemas.ts` - Zod schemas for validation
+- `lib/extraction/index.ts` - Extraction service using Gemini 3
 
 ### API Routes
-- `app/api/auth/gmail/route.ts` - OAuth initiation and status
-- `app/api/auth/gmail/callback/route.ts` - OAuth callback handler
-- `app/api/emails/route.ts` - Email fetching endpoint
+- `app/api/extract/route.ts` - Extraction endpoint
 
 ### UI Components
-- `components/gmail/GmailConnectionCard.tsx` - Gmail connection status and connect button
-- `components/gmail/EmailList.tsx` - Email list with pagination
-- `components/gmail/EmailViewer.tsx` - Full email display
-- `components/gmail/index.ts` - Component exports
-
-### ShadCN Components Added
-- `components/ui/button.tsx`
-- `components/ui/card.tsx`
-- `components/ui/badge.tsx`
-- `components/ui/scroll-area.tsx`
-- `components/ui/separator.tsx`
+- `components/extraction/ExtractionCard.tsx` - Display extraction results
 
 ---
 
@@ -103,8 +115,7 @@
 
 *Session notes and context that should carry forward to next session.*
 
-- Build passes: `bun run build` ✓
-- TypeScript check passes: `bun typecheck` ✓
+- Gmail integration working with mackenzie@buildvision.io
 - Repository: `git@github.com:mrhoo2/email-bdc-agent.git`
 - Target inbox: bids@buildvision.io
-- Ready for Stage 2 after live Gmail testing
+- Gemini API key needed in GOOGLE_GENERATIVE_AI_API_KEY env var

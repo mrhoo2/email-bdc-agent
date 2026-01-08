@@ -24,7 +24,7 @@
 |-------|------|--------|---------|-----------|
 | 0 | Foundation & Test Harness | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 1 | Gmail Integration (Backfill Mode) | ✅ Complete | 2026-01-08 | 2026-01-08 |
-| 2 | Entity Extraction (Multi-Model) | ⚪ Not Started | - | - |
+| 2 | Entity Extraction (Gemini 3 Pro) | 🔄 In Progress | 2026-01-08 | - |
 | 3 | Seller Inference | ⚪ Not Started | - | - |
 | 4 | Project Clustering | ⚪ Not Started | - | - |
 | 5 | Structured Output | ⚪ Not Started | - | - |
@@ -33,6 +33,8 @@
 ---
 
 ## Stage 0: Foundation & Test Harness
+
+### Status: ✅ Complete
 
 ### Objectives
 - Initialize Next.js project with BuildVision stack
@@ -43,29 +45,19 @@
 - GitHub repo setup
 
 ### Checklist
-- [ ] Project initialized with `bunx create-next-app@latest`
-- [ ] ShadCN configured with components.json
-- [ ] globals.css set up with BuildVision tokens
-- [ ] Core TypeScript interfaces created
-- [ ] AI provider abstraction implemented
-- [ ] GitHub repo connected (`git@github.com:mrhoo2/email-bdc-agent.git`)
-- [ ] Initial commit pushed
-
-### Test Checkpoint
-- [ ] Project builds without errors (`bun build`)
-- [ ] Development server starts (`bun dev`)
-- [ ] All three AI providers connect successfully
-- [ ] Mock data displays in test UI
-
-### Test Results
-*To be filled after testing*
-
-### Notes
-*Session-specific notes*
+- [x] Project initialized with `bunx create-next-app@latest`
+- [x] ShadCN configured with components.json
+- [x] globals.css set up with BuildVision tokens
+- [x] Core TypeScript interfaces created
+- [x] AI provider abstraction implemented
+- [x] GitHub repo connected (`git@github.com:mrhoo2/email-bdc-agent.git`)
+- [x] Initial commit pushed
 
 ---
 
 ## Stage 1: Gmail Integration (Backfill Mode)
+
+### Status: ✅ Complete
 
 ### Objectives
 - Configure Google Cloud OAuth credentials
@@ -74,69 +66,70 @@
 - Build email viewer component
 
 ### Checklist
-- [x] Google Cloud project created (user must set up in Google Cloud Console)
+- [x] Google Cloud project created
 - [x] OAuth credentials configured (env vars in .env.local)
 - [x] Gmail API read-only scope implemented
 - [x] Historical email fetch working (fetchAllEmails with pagination)
 - [x] Email viewer component built
 
-### Test Checkpoint
-- [ ] OAuth flow works end-to-end (requires Google Cloud credentials)
-- [ ] Can fetch all emails from bids@buildvision.io
-- [ ] Email bodies parsed correctly (HTML/plain text)
-- [ ] Thread IDs properly extracted
-
 ### Test Results
-*Code complete - awaiting credentials for live testing*
+- ✅ OAuth flow works end-to-end
+- ✅ Email fetching successful with mackenzie@buildvision.io
+- ✅ Token persistence implemented (file-based for dev)
+- ✅ Build passes: `bun run build` ✓
 
-### Notes
-**Implementation Complete (2026-01-08):**
-- Created `lib/gmail/types.ts` - Gmail API types and ParsedEmail interface
-- Created `lib/gmail/auth.ts` - OAuth2 flow, token management, refresh handling
-- Created `lib/gmail/index.ts` - Email fetching, parsing, batch operations
-- Created `app/api/auth/gmail/route.ts` - OAuth initiation endpoint
-- Created `app/api/auth/gmail/callback/route.ts` - OAuth callback handler
-- Created `app/api/emails/route.ts` - Email fetching API
-- Created `components/gmail/GmailConnectionCard.tsx` - Connection UI
-- Created `components/gmail/EmailList.tsx` - Email list with pagination
-- Created `components/gmail/EmailViewer.tsx` - Full email viewer
-- Updated `app/page.tsx` - Integrated Gmail components
-- Added ShadCN components: button, card, badge, scroll-area, separator
+### Files Created
+- `lib/gmail/types.ts` - Gmail API types and ParsedEmail interface
+- `lib/gmail/auth.ts` - OAuth2 flow, token management, refresh handling
+- `lib/gmail/index.ts` - Email fetching, parsing, batch operations
+- `app/api/auth/gmail/route.ts` - OAuth initiation endpoint
+- `app/api/auth/gmail/callback/route.ts` - OAuth callback handler
+- `app/api/emails/route.ts` - Email fetching API
+- `components/gmail/GmailConnectionCard.tsx` - Connection UI
+- `components/gmail/EmailList.tsx` - Email list with pagination
+- `components/gmail/EmailViewer.tsx` - Full email viewer
 
 ---
 
-## Stage 2: Entity Extraction (Multi-Model)
+## Stage 2: Entity Extraction (Gemini 3 Pro)
+
+### Status: 🔄 In Progress
 
 ### Objectives
-- Design extraction prompts
-- Implement with AI provider abstraction
-- Extract: sender, recipients, subject, body, timestamps, thread ID
-- Extract: purchaser identity, project signals, bid due dates
-- Side-by-side model comparison UI
+- Design extraction prompts for bid emails
+- Create Zod validation schemas for structured output
+- Implement Gemini 3 Pro extraction (primary focus)
+- Build extraction test UI
+- Defer GPT-5.2 and Claude 4.5 Sonnet to future iteration
+
+### Scope Update (2026-01-08)
+- **Focus on Gemini 3 Pro only** for initial extraction
+- GPT-5.2 and Claude 4.5 Sonnet benchmarking deferred to future iteration
+- Model comparison UI deferred
 
 ### Checklist
-- [ ] Extraction prompts designed
+- [x] AI model configurations updated (GPT-5.2, Gemini 3 Pro, Claude 4.5 Sonnet)
 - [ ] Zod validation schemas created
-- [ ] GPT extraction implemented
-- [ ] Gemini extraction implemented
-- [ ] Claude extraction implemented
-- [ ] Comparison UI built
+- [ ] Gemini 3 extraction API route
+- [ ] Extraction test UI component
+- [ ] Manual testing with real bid emails
 
 ### Test Checkpoint
-- [ ] Manual review of 20 emails - grade accuracy
-- [ ] Model comparison documented
-- [ ] Edge cases identified
-- [ ] Best performer selected (or hybrid approach)
-
-### Test Results
-*To be filled after testing*
+- [ ] Extract entities from sample bid emails
+- [ ] Validate structured output format
+- [ ] Grade extraction accuracy
 
 ### Notes
-*Session-specific notes*
+**Model Updates (2026-01-08):**
+- OpenAI: gpt-4o → gpt-5.2
+- Google: gemini-1.5-pro → gemini-3-pro
+- Anthropic: claude-3-5-sonnet → claude-4.5-sonnet
 
 ---
 
 ## Stage 3: Seller Inference
+
+### Status: ⚪ Not Started
 
 ### Objectives
 - Implement email recipient analysis
@@ -149,20 +142,11 @@
 - [ ] Postgres interface stubbed
 - [ ] Unknown seller handling
 
-### Test Checkpoint
-- [ ] Validate inferred sellers against known relationships
-- [ ] Coverage gaps identified
-- [ ] Confidence scoring working
-
-### Test Results
-*To be filled after testing*
-
-### Notes
-*Session-specific notes*
-
 ---
 
 ## Stage 4: Project Clustering
+
+### Status: ⚪ Not Started
 
 ### Objectives
 - Design similarity algorithm
@@ -175,21 +159,11 @@
 - [ ] Many-to-many relationships modeled
 - [ ] Grouping visualization built
 
-### Test Checkpoint
-- [ ] Process full inbox history
-- [ ] Review cluster quality
-- [ ] Threshold tuning complete
-- [ ] Misclassification rate acceptable
-
-### Test Results
-*To be filled after testing*
-
-### Notes
-*Session-specific notes*
-
 ---
 
 ## Stage 5: Structured Output
+
+### Status: ⚪ Not Started
 
 ### Objectives
 - Define final JSON schema
@@ -202,20 +176,11 @@
 - [ ] Per-purchaser due dates working
 - [ ] Export functionality complete
 
-### Test Checkpoint
-- [ ] Validate output against manually-created bid list
-- [ ] Relationship integrity verified
-- [ ] JSON schema validates
-
-### Test Results
-*To be filled after testing*
-
-### Notes
-*Session-specific notes*
-
 ---
 
 ## Stage 6: Demo UI
+
+### Status: ⚪ Not Started
 
 ### Objectives
 - Build bid list table view
@@ -228,33 +193,21 @@
 - [ ] Date grouping implemented
 - [ ] Manual refresh trigger added
 
-### Test Checkpoint
-- [ ] Stakeholder demo completed
-- [ ] Feedback collected
-- [ ] Feature requests documented
-
-### Test Results
-*To be filled after testing*
-
-### Notes
-*Session-specific notes*
-
 ---
 
 ## Project Brief Adjustments
 
-*Document any changes to scope or requirements discovered during development*
-
 | Date | Adjustment | Reason |
 |------|------------|--------|
-| - | - | - |
+| 2026-01-08 | Focus on Gemini 3 Pro only for extraction | Faster iteration, defer multi-model benchmarking |
+| 2026-01-08 | Update all AI models to 2026 versions | Use latest available models |
 
 ---
 
 ## Lessons Learned
 
-*Capture insights for future reference*
-
 | Stage | Insight |
 |-------|---------|
-| - | - |
+| 1 | Token persistence needed for Next.js dev mode (hot reload clears in-memory state) |
+| 1 | File-based token storage works well for development |
+*Session-specific notes*

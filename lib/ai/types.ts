@@ -87,11 +87,11 @@ export interface BidDueDate {
   confidence: number;
 }
 
-// Model configurations
+// Model configurations (updated January 2026)
 export const DEFAULT_MODELS: Record<AIProviderName, string> = {
-  openai: "gpt-4o",
-  google: "gemini-1.5-pro",
-  anthropic: "claude-3-5-sonnet-20241022",
+  openai: "gpt-5.2",
+  google: "gemini-3-pro",
+  anthropic: "claude-4.5-sonnet",
 };
 
 export const DEFAULT_CONFIG: Omit<AIProviderConfig, "apiKey" | "provider"> = {

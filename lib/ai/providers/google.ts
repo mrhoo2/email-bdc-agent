@@ -1,5 +1,6 @@
 /**
  * Google Gemini Provider Implementation
+ * Updated January 2026 for Gemini 3 Pro
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -17,7 +18,8 @@ import {
 export function createGoogleProvider(config: AIProviderConfig): AIProvider {
   const client = new GoogleGenerativeAI(config.apiKey);
 
-  const modelName = config.model || "gemini-1.5-pro";
+  // Default to Gemini 3 Pro (January 2026)
+  const modelName = config.model || "gemini-3-pro";
   const temperature = config.temperature ?? 0.1;
   const maxTokens = config.maxTokens ?? 4096;
 
