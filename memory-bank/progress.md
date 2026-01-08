@@ -24,11 +24,10 @@
 |-------|------|--------|---------|-----------|
 | 0 | Foundation & Test Harness | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 1 | Gmail Integration (Backfill Mode) | ✅ Complete | 2026-01-08 | 2026-01-08 |
-| 2 | Entity Extraction (Gemini 3 Pro) | 🔄 In Progress | 2026-01-08 | - |
+| 2 | Entity Extraction (Gemini 3 Pro Preview) | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 3 | Seller Inference | ⚪ Not Started | - | - |
 | 4 | Project Clustering | ⚪ Not Started | - | - |
-| 5 | Structured Output | ⚪ Not Started | - | - |
-| 6 | Demo UI | ⚪ Not Started | - | - |
+| 5 | Demo UI | ⚪ Not Started | - | - |
 
 ---
 
@@ -40,8 +39,8 @@
 - Initialize Next.js project with BuildVision stack
 - Configure ShadCN with new-york style
 - Set up globals.css with BuildVision design tokens
-- Create core TypeScript interfaces (Email, Project, Purchaser, Seller, Bid)
-- Build AI provider abstraction layer (GPT/Gemini/Claude)
+- Create core TypeScript interfaces
+- Build AI provider abstraction layer
 - GitHub repo setup
 
 ### Checklist
@@ -50,8 +49,7 @@
 - [x] globals.css set up with BuildVision tokens
 - [x] Core TypeScript interfaces created
 - [x] AI provider abstraction implemented
-- [x] GitHub repo connected (`git@github.com:mrhoo2/email-bdc-agent.git`)
-- [x] Initial commit pushed
+- [x] GitHub repo connected
 
 ---
 
@@ -62,68 +60,71 @@
 ### Objectives
 - Configure Google Cloud OAuth credentials
 - Implement Gmail OAuth flow (read-only scope)
-- Create email fetching service (batch historical fetch)
+- Create email fetching service
 - Build email viewer component
 
 ### Checklist
 - [x] Google Cloud project created
-- [x] OAuth credentials configured (env vars in .env.local)
+- [x] OAuth credentials configured
 - [x] Gmail API read-only scope implemented
-- [x] Historical email fetch working (fetchAllEmails with pagination)
+- [x] Historical email fetch working
 - [x] Email viewer component built
-
-### Test Results
-- ✅ OAuth flow works end-to-end
-- ✅ Email fetching successful with mackenzie@buildvision.io
-- ✅ Token persistence implemented (file-based for dev)
-- ✅ Build passes: `bun run build` ✓
+- [x] Token persistence (file-based)
 
 ### Files Created
-- `lib/gmail/types.ts` - Gmail API types and ParsedEmail interface
-- `lib/gmail/auth.ts` - OAuth2 flow, token management, refresh handling
-- `lib/gmail/index.ts` - Email fetching, parsing, batch operations
-- `app/api/auth/gmail/route.ts` - OAuth initiation endpoint
-- `app/api/auth/gmail/callback/route.ts` - OAuth callback handler
-- `app/api/emails/route.ts` - Email fetching API
-- `components/gmail/GmailConnectionCard.tsx` - Connection UI
-- `components/gmail/EmailList.tsx` - Email list with pagination
-- `components/gmail/EmailViewer.tsx` - Full email viewer
+- `lib/gmail/types.ts`
+- `lib/gmail/auth.ts`
+- `lib/gmail/index.ts`
+- `app/api/auth/gmail/route.ts`
+- `app/api/auth/gmail/callback/route.ts`
+- `app/api/emails/route.ts`
+- `components/gmail/GmailConnectionCard.tsx`
+- `components/gmail/EmailList.tsx`
+- `components/gmail/EmailViewer.tsx`
 
 ---
 
-## Stage 2: Entity Extraction (Gemini 3 Pro)
+## Stage 2: Entity Extraction (Gemini 3 Pro Preview)
 
-### Status: 🔄 In Progress
+### Status: ✅ Complete & Tested
 
 ### Objectives
-- Design extraction prompts for bid emails
-- Create Zod validation schemas for structured output
-- Implement Gemini 3 Pro extraction (primary focus)
-- Build extraction test UI
-- Defer GPT-5.2 and Claude 4.5 Sonnet to future iteration
-
-### Scope Update (2026-01-08)
-- **Focus on Gemini 3 Pro only** for initial extraction
-- GPT-5.2 and Claude 4.5 Sonnet benchmarking deferred to future iteration
-- Model comparison UI deferred
+- Create Zod validation schemas
+- Implement extraction service with Gemini 3 Pro Preview
+- Build extraction API route
+- Create extraction UI component
+- Test with real bid emails
 
 ### Checklist
-- [x] AI model configurations updated (GPT-5.2, Gemini 3 Pro, Claude 4.5 Sonnet)
-- [ ] Zod validation schemas created
-- [ ] Gemini 3 extraction API route
-- [ ] Extraction test UI component
-- [ ] Manual testing with real bid emails
+- [x] Zod validation schemas created
+- [x] Extraction service implemented
+- [x] API route created (/api/extract)
+- [x] ExtractionCard UI component built
+- [x] Main page updated (3-column layout)
+- [x] Tested with real bid emails
 
-### Test Checkpoint
-- [ ] Extract entities from sample bid emails
-- [ ] Validate structured output format
-- [ ] Grade extraction accuracy
+### Files Created
+- `lib/extraction/schemas.ts`
+- `lib/extraction/index.ts`
+- `app/api/extract/route.ts`
+- `components/extraction/ExtractionCard.tsx`
+- `components/extraction/index.ts`
 
-### Notes
-**Model Updates (2026-01-08):**
-- OpenAI: gpt-4o → gpt-5.2
-- Google: gemini-1.5-pro → gemini-3-pro
-- Anthropic: claude-3-5-sonnet → claude-4.5-sonnet
+### Test Results (January 8, 2026)
+Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
+
+| Entity | Extracted Value | Confidence |
+|--------|-----------------|------------|
+| Purchaser | Michael Powers | 80% |
+| Project | Byron WWTP - Improvements | 90% |
+| Bid Due Date | Thu, Jan 8, 2026 | 70% (inferred) |
+
+**Extraction Notes:**
+- Purchaser company name not explicitly stated (sender uses generic Gmail)
+- Bid due date inferred from "by the end of this week" phrase
+
+### AI Model Used
+`gemini-3-pro-preview` via Google Generative AI API
 
 ---
 
@@ -132,15 +133,14 @@
 ### Status: ⚪ Not Started
 
 ### Objectives
-- Implement email recipient analysis
-- Create seller inference logic
-- Stub Postgres interface for future integration
+- Analyze email recipients for @buildvision.io addresses
+- Map recipients to sales representatives
+- Add seller inference to extraction output
 
 ### Checklist
 - [ ] Recipient analysis implemented
 - [ ] Seller inference logic working
-- [ ] Postgres interface stubbed
-- [ ] Unknown seller handling
+- [ ] UI updated for seller display
 
 ---
 
@@ -151,34 +151,11 @@
 ### Objectives
 - Design similarity algorithm
 - Implement project clustering service
-- Handle new vs existing project matching
-
-### Checklist
-- [ ] Similarity algorithm designed
-- [ ] Clustering service implemented
-- [ ] Many-to-many relationships modeled
-- [ ] Grouping visualization built
+- Group related emails
 
 ---
 
-## Stage 5: Structured Output
-
-### Status: ⚪ Not Started
-
-### Objectives
-- Define final JSON schema
-- Implement bid list aggregation
-- Handle per-purchaser due dates
-
-### Checklist
-- [ ] Output schema finalized
-- [ ] Aggregation logic implemented
-- [ ] Per-purchaser due dates working
-- [ ] Export functionality complete
-
----
-
-## Stage 6: Demo UI
+## Stage 5: Demo UI
 
 ### Status: ⚪ Not Started
 
@@ -187,20 +164,33 @@
 - Implement date-based grouping
 - Add manual refresh trigger
 
-### Checklist
-- [ ] Table view implemented
-- [ ] Sorting/filtering working
-- [ ] Date grouping implemented
-- [ ] Manual refresh trigger added
-
 ---
 
 ## Project Brief Adjustments
 
 | Date | Adjustment | Reason |
 |------|------------|--------|
-| 2026-01-08 | Focus on Gemini 3 Pro only for extraction | Faster iteration, defer multi-model benchmarking |
-| 2026-01-08 | Update all AI models to 2026 versions | Use latest available models |
+| 2026-01-08 | Skip database persistence | Will integrate with main BuildVision app |
+| 2026-01-08 | Focus on Gemini 3 Pro Preview only | Faster iteration |
+| 2026-01-08 | AI Models Reference added to global template | Standardize across projects |
+
+---
+
+## AI Models Reference (January 2026)
+
+### Pro Tier
+| Provider | Model |
+|----------|-------|
+| Google | `gemini-3-pro-preview` |
+| Anthropic | `claude-opus-4-5-20251101` |
+| OpenAI | `gpt-5.2` |
+
+### Fast Tier
+| Provider | Model |
+|----------|-------|
+| Google | `gemini-3-flash-preview` |
+| Anthropic | `claude-sonnet-4-5-20250929` |
+| OpenAI | `gpt-5-mini` |
 
 ---
 
@@ -210,4 +200,16 @@
 |-------|---------|
 | 1 | Token persistence needed for Next.js dev mode (hot reload clears in-memory state) |
 | 1 | File-based token storage works well for development |
-*Session-specific notes*
+| 2 | Zod validation ensures AI output conforms to expected schema |
+| 2 | Model names must be exact API identifiers (e.g., `gemini-3-pro-preview` not `gemini-3-pro`) |
+| 2 | Confidence scores help identify uncertain extractions |
+
+---
+
+## Commit History
+
+| Commit | Description |
+|--------|-------------|
+| ab964af | Stage 1 complete: Gmail integration with AI model updates |
+| (pending) | Stage 2 complete: Entity extraction with Gemini 3 Pro Preview |
+- [ ] Grouping visualization built

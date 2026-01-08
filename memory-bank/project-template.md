@@ -113,6 +113,26 @@ Email ingestion system that automatically turns bid-related emails into a struct
 
 ---
 
+## AI Models Reference (January 2026)
+
+### Pro Tier (High Capability)
+| Provider | Model | Notes |
+|----------|-------|-------|
+| Google | `gemini-3-pro-preview` | Latest Gemini 3 Pro |
+| Anthropic | `claude-opus-4-5-20251101` | Claude 4.5 Opus |
+| OpenAI | `gpt-5.2` | GPT-5.2 (or `gpt-5.2-pro` for harder thinking) |
+
+### Fast Tier (Speed Optimized)
+| Provider | Model | Notes |
+|----------|-------|-------|
+| Google | `gemini-3-flash-preview` | Gemini 3 Flash |
+| Anthropic | `claude-sonnet-4-5-20250929` | Claude 4.5 Sonnet |
+| OpenAI | `gpt-5-mini` | GPT-5 Mini |
+
+**Last Updated:** January 8, 2026
+
+---
+
 ## Reference
 
 - **Style Guide:** `bv-style-guide.md` - BuildVision design system

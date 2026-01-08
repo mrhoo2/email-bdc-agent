@@ -18,8 +18,8 @@ import {
 export function createGoogleProvider(config: AIProviderConfig): AIProvider {
   const client = new GoogleGenerativeAI(config.apiKey);
 
-  // Default to Gemini 3 Pro (January 2026)
-  const modelName = config.model || "gemini-3-pro";
+  // Default to Gemini 3 Pro Preview (January 2026)
+  const modelName = config.model || "gemini-3-pro-preview";
   const temperature = config.temperature ?? 0.1;
   const maxTokens = config.maxTokens ?? 4096;
 
