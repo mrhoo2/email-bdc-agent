@@ -29,6 +29,7 @@
 | 4 | Project Clustering | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 5 | Demo UI | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 6 | GreenHack Demo Enhancements | ✅ Complete | 2026-01-09 | 2026-01-09 |
+| 6.1 | Calendar View & 3-Panel Layout | ✅ Complete | 2026-01-09 | 2026-01-09 |
 
 ---
 
@@ -364,3 +365,70 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 | 5 | PostCSS config required for Tailwind v4 (`@tailwindcss/postcss`) |
 | 6 | mergeBidsByCluster() existed but was never called - always check if functions are actually used |
 | 6 | Email signature parsing critical when internal reps forward emails |
+| 6.1 | react-resizable-panels requires `className` not inline `style` on Separator for stable sizing |
+| 6.1 | Panel content containers should use `className="h-full overflow-auto"` not inline styles |
+
+---
+
+## Stage 6.1: Calendar View & 3-Panel Layout
+
+### Status: ✅ Complete
+
+### Objectives
+- Add calendar view showing bid due dates
+- Implement 3-panel resizable layout
+- Visual deadline awareness for demo
+
+### Checklist
+- [x] Install `react-resizable-panels` package
+- [x] Create `BidCalendar.tsx` component with month view
+- [x] Calendar highlights days with bid due dates (color-coded by urgency)
+- [x] 3-panel layout: Email (25%) | Bid List (50%) | Calendar (25%)
+- [x] All panels resizable via drag handles
+- [x] Add vertical text CSS for collapsed state
+
+### Files Created/Modified
+- `package.json` - Added `react-resizable-panels`
+- `components/bids/BidCalendar.tsx` - Calendar component with month view
+- `components/bids/index.ts` - Export BidCalendar
+- `app/page.tsx` - 3-panel resizable layout
+- `app/globals.css` - Added `.writing-mode-vertical` utility class
+
+### UI Layout
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ [Header: Logo | Email BDC Agent | Stats | Download | Gmail Account]          │
+├───────────────┬───────────────────────────────────────┬──────────────────────┤
+│               │                                       │                      │
+│  [Email       ⋮  [Bid List]                          ⋮  [Calendar]          │
+│   Panel]      │  - Overdue / Today / Tomorrow        │  - Month view        │
+│  - List       │  - Project cards with purchasers     │  - Due date dots     │
+│  - Expand     │  - Click to view email               │  - Color by urgency  │
+│  - Process    │                                       │                      │
+│  (25%)        │  (50%)                                │  (25%)               │
+│  <drag>       │                                       │  <drag>              │
+└───────────────┴───────────────────────────────────────┴──────────────────────┘
+```
+
+### Calendar Features
+| Feature | Description |
+|---------|-------------|
+| Month View | Shows current month with navigation |
+| Due Date Highlights | Days with bids show colored dots |
+| Color Coding | Green (7+ days), Yellow (2-6 days), Red (0-1 days) |
+| Click to Scroll | (Future) Click date scrolls bid list |
+
+### Bug Fix: Panel Sizing
+**Problem:** Panels collapsed to minimal size on page load
+**Root Cause:** Using inline `style={{ width: '6px' }}` on Separator components
+**Solution:**
+- Use `className` instead of inline `style` on Separator
+- Use `className="h-full overflow-auto"` on panel content containers
+- Remove `maxSize` and `panelRef` props that caused issues
+
+### Commits
+| Commit | Description |
+|--------|-------------|
+| d8ee30b | feat(Stage 6): GreenHack demo multi-purchaser consolidation |
+| 63f3b51 | feat(Stage 6.1): Add 3-panel resizable layout with calendar view |
+| 030dba4 | feat(Stage 6.1): Fix panel sizing, clean up debug code |

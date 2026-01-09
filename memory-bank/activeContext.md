@@ -20,83 +20,60 @@
 
 ## Current Focus
 
-**Stage:** 6.1 - Calendar View & 3-Panel Layout
+**Stage:** Demo Ready ✅
 
-**Status:** In Progress - Adding calendar with resizable panels
+**Status:** All core features complete for GreenHack demo
 
 **Demo Context:**
 - GreenHack prioritizes automated project rekeying to avoid manual data entry
 - Demo will show: Email inbox → Automated bid list with calendar context
-- Calendar highlights bid due dates and allows click-to-scroll
+- Calendar highlights bid due dates and allows visual deadline awareness
 
 ---
 
-## Stage 6.1: Calendar View Implementation
+## Completed Stages
 
-### Requirements
-1. **3-Panel Layout**: Email (left) | Bid List (middle) | Calendar (right)
-2. **Resizable panels**: Drag handles between panels to resize
-3. **Calendar features**:
-   - Month view with highlighted bid due dates
-   - Color-coded by urgency (overdue=red, today=yellow, upcoming=blue)
-   - Click on day scrolls to bids for that day
-4. **Spotify-style collapse**: Calendar can be hidden/shown with toggle button
-5. **Calendar visible by default**
-
-### Layout
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ [Header]                                                                  │
-├─────────────────┬───────────────────────────────┬────────────────────────┤
-│  [Email Panel]  ⋮  [Bid List Panel]            ⋮  [Calendar Panel]      │
-│  ~320px         │  (flexible)                   │  ~320px (collapsible)  │
-│  <drag>         │                               │  <drag>                │
-└─────────────────┴───────────────────────────────┴────────────────────────┘
-```
-
-### Implementation Plan
-- [ ] Install react-resizable-panels
-- [ ] Create BidCalendar.tsx component
-- [ ] Add click-to-scroll functionality
-- [ ] Update page.tsx with 3-panel resizable layout
-- [ ] Add Spotify-style collapse/expand
-- [ ] Style with BuildVision design tokens
-
-### Files to Create/Modify
-| File | Action |
-|------|--------|
-| `package.json` | Add react-resizable-panels |
-| `components/bids/BidCalendar.tsx` | Create calendar component |
-| `components/bids/index.ts` | Export BidCalendar |
-| `app/page.tsx` | 3-panel resizable layout |
-| `app/globals.css` | Panel resize handle styles |
+| Stage | Name | Completed |
+|-------|------|-----------|
+| 0 | Foundation & Test Harness | 2026-01-08 |
+| 1 | Gmail Integration (Backfill Mode) | 2026-01-08 |
+| 2 | Entity Extraction (Gemini 3 Pro Preview) | 2026-01-08 |
+| 3 | Seller Inference | 2026-01-08 |
+| 4 | Project Clustering | 2026-01-08 |
+| 5 | Demo UI | 2026-01-08 |
+| 6 | GreenHack Demo Enhancements | 2026-01-09 |
+| 6.1 | Calendar View & 3-Panel Layout | 2026-01-09 |
 
 ---
 
-## Previous Stage: Multi-Purchaser Consolidation ✅ COMPLETE
+## Stage 6.1: Calendar View & 3-Panel Layout ✅ COMPLETE
 
-### Problem Solved
+### Summary
+Implemented 3-panel resizable layout with calendar view showing bid due dates.
+
+### Key Deliverables
+- **3-Panel Layout**: Email (25%) | Bid List (50%) | Calendar (25%)
+- **BidCalendar Component**: Month view with color-coded due date indicators
+- **Resizable Panels**: Drag handles between all panels
+- **Urgency Color Coding**: Green (safe), Yellow (soon), Red (urgent)
+
+### Bug Fix Applied
+- **Problem**: react-resizable-panels collapsed on load
+- **Solution**: Use `className` instead of inline `style` on Separator; use `className="h-full overflow-auto"` on content containers
+
+---
+
+## Stage 6: Multi-Purchaser Consolidation ✅ COMPLETE
+
+### Summary
 The app now consolidates multiple emails into project-centric bid cards with multiple purchasers.
 
-### Changes Made (Commit d8ee30b)
-- Added `Purchaser` type for individual contractors
-- Updated `BidItem` to support `purchasers: Purchaser[]` array
-- Updated extraction prompt for email signature parsing
-- Enabled `mergeBidsByCluster()` in processing flow
-- Updated BidCard UI for multi-purchaser display
-
----
-
-## Files to Modify
-
-| File | Phase | Changes |
-|------|-------|---------|
-| `lib/bids/types.ts` | 1 | Add `Bidder` type, update `BidItem` |
-| `lib/extraction/schemas.ts` | 1 | Add `bidderSource` field |
-| `lib/ai/prompts.ts` | 2 | Signature parsing instructions |
-| `lib/bids/grouping.ts` | 3 | Enable merge, aggregate bidders |
-| `components/bids/BidCard.tsx` | 4 | Multi-bidder UI |
-| `app/page.tsx` | 3 | Wire up merge logic |
+### Key Deliverables
+- `Purchaser` type for individual contractors with due dates
+- `BidItem` supports `purchasers: Purchaser[]` array
+- Email signature parsing for purchaser identification
+- `mergeBidsByCluster()` enabled in processing flow
+- BidCard UI shows multi-purchaser display
 
 ---
 
@@ -104,6 +81,7 @@ The app now consolidates multiple emails into project-centric bid cards with mul
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-09 | Use `className` not inline `style` on react-resizable-panels Separator | Inline styles caused panel sizing bugs |
 | 2026-01-09 | Parse email signatures for bidder info | Internal sales engineers forward emails; bidder is in body, not from-address |
 | 2026-01-09 | Project-centric view with multiple bidders | Demo needs to show same project with different bidders |
 | 2026-01-09 | Enable mergeBidsByCluster | Function exists but unused; fixes consolidation |
@@ -117,13 +95,20 @@ The app now consolidates multiple emails into project-centric bid cards with mul
 
 ---
 
-## Notes
+## Notes for Next Session
 
-*Session notes and context for GreenHack demo*
+### GreenHack Demo Prep
+- Demo emails being prepared by separate team
+- Features ready:
+  - Automated bid list creation from email inbox
+  - AI extraction of project data
+  - Multi-purchaser consolidation (multiple bidders → single project)
+  - 3-panel resizable layout
+  - Calendar view for deadline visualization
 
-- Demo for mechanical sales rep and manufacturer
-- GreenHack contract is significant
-- Email signature parsing critical for internal sales engineer use case
-- Multiple bidders per project is key demo requirement
-- Someone else handling demo email templates
-### Stage 0: Foundation ✅
+### Future Improvements (Post-Demo)
+| Item | Description |
+|------|-------------|
+| Configurable internal domain | Replace hardcoded `@buildvision.io` |
+| Click-to-scroll calendar | Click date scrolls bid list to that date |
+| Calendar collapse/expand | Spotify-style toggle for calendar panel |
