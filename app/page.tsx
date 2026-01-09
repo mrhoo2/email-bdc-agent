@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Group, Panel, Separator, usePanelRef } from "react-resizable-panels";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import { Header } from "@/components/layout";
 import { EmailPanel, GmailConnectionCard } from "@/components/gmail";
 import { BidList, BidCalendar } from "@/components/bids";
@@ -31,8 +31,6 @@ export default function Home() {
 
   // Ref to track if processing is cancelled
   const processingCancelled = useRef(false);
-  // Ref to calendar panel for collapse/expand
-  const calendarPanelRef = useRef<any>(null);
 
   /**
    * Check Gmail connection status on mount
@@ -355,15 +353,7 @@ export default function Home() {
    */
   const handleToggleCalendar = useCallback(() => {
     setCalendarCollapsed((prev) => !prev);
-    // Use panel API to collapse/expand if available
-    if (calendarPanelRef.current) {
-      if (calendarCollapsed) {
-        calendarPanelRef.current.expand();
-      } else {
-        calendarPanelRef.current.collapse();
-      }
-    }
-  }, [calendarCollapsed]);
+  }, []);
 
   // Get all bids as flat array for calendar
   const allBids: BidItem[] = bidList?.groups.flatMap(g => g.bids) ?? [];
@@ -411,38 +401,41 @@ export default function Home() {
       )}
 
       {/* Main Content: 3-Panel Resizable Layout */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <Group orientation="horizontal" className="h-full">
-          {/* Left Panel: Email List + Viewer */}
+      <div className="flex-1 overflow-hidden">
+        <Group 
+          orientation="horizontal" 
+          style={{ height: '100%' }}
+        >
+          {/* Panel 1: Email List */}
           <Panel 
             id="email-panel"
-            defaultSize={25} 
-            minSize={15} 
-            maxSize={40}
-            className="h-full"
+            defaultSize={25}
+            minSize={10}
+            style={{ height: '100%' }}
           >
-            <EmailPanel
-              isConnected={isGmailConnected}
-              onConnectionRequired={() => setShowConnectionModal(true)}
-              onEmailsLoaded={handleEmailsLoaded}
-              highlightEmailId={highlightEmailId}
-              onProcessEmail={handleProcessSingleEmail}
-              onProcessAll={handleProcessEmails}
-              isProcessing={processing.stage === "extracting" || processing.stage === "clustering"}
-            />
+            <div className="h-full overflow-auto">
+              <EmailPanel
+                isConnected={isGmailConnected}
+                onConnectionRequired={() => setShowConnectionModal(true)}
+                onEmailsLoaded={handleEmailsLoaded}
+                highlightEmailId={highlightEmailId}
+                onProcessEmail={handleProcessSingleEmail}
+                onProcessAll={handleProcessEmails}
+                isProcessing={processing.stage === "extracting" || processing.stage === "clustering"}
+              />
+            </div>
           </Panel>
 
-          {/* Resize Handle */}
-          <Separator className="w-1.5 bg-neutral-200 hover:bg-bv-blue-400 transition-colors cursor-col-resize" />
+          <Separator className="w-1 bg-neutral-300 hover:bg-blue-500 cursor-col-resize" />
 
-          {/* Middle Panel: Bid List */}
+          {/* Panel 2: Bid List */}
           <Panel 
             id="bid-panel"
-            defaultSize={50} 
-            minSize={30}
-            className="h-full"
+            defaultSize={50}
+            minSize={20}
+            style={{ height: '100%' }}
           >
-            <div className="h-full bg-neutral-100">
+            <div className="h-full overflow-auto bg-neutral-100">
               <BidList
                 bidList={bidList}
                 onEmailClick={handleEmailClick}
@@ -451,31 +444,23 @@ export default function Home() {
             </div>
           </Panel>
 
-          {/* Resize Handle */}
-          <Separator className="w-1.5 bg-neutral-200 hover:bg-bv-blue-400 transition-colors cursor-col-resize" />
+          <Separator className="w-1 bg-neutral-300 hover:bg-blue-500 cursor-col-resize" />
 
-          {/* Right Panel: Calendar (Collapsible) */}
+          {/* Panel 3: Calendar */}
           <Panel 
             id="calendar-panel"
-            panelRef={calendarPanelRef}
-            defaultSize={25} 
-            minSize={calendarCollapsed ? 3 : 15}
-            maxSize={35}
-            collapsible
-            collapsedSize={3}
-            onResize={(size) => {
-              const numSize = typeof size === 'number' ? size : parseFloat(String(size));
-              if (numSize <= 3) setCalendarCollapsed(true);
-              else setCalendarCollapsed(false);
-            }}
-            className="h-full"
+            defaultSize={25}
+            minSize={10}
+            style={{ height: '100%' }}
           >
-            <BidCalendar
-              bids={allBids}
-              onDayClick={handleCalendarDayClick}
-              isCollapsed={calendarCollapsed}
-              onToggleCollapse={handleToggleCalendar}
-            />
+            <div className="h-full overflow-auto">
+              <BidCalendar
+                bids={allBids}
+                onDayClick={handleCalendarDayClick}
+                isCollapsed={calendarCollapsed}
+                onToggleCollapse={handleToggleCalendar}
+              />
+            </div>
           </Panel>
         </Group>
       </div>
@@ -501,3 +486,4 @@ export default function Home() {
     </div>
   );
 }
+
