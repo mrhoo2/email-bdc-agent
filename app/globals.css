@@ -121,4 +121,10 @@ body {
   .text-body-sm { font-size: 16px; line-height: 22px; }
   .text-detail { font-size: 14px; line-height: 18px; }
   .text-micro { font-size: 12px; line-height: 16px; }
+  
+  /* Vertical text for collapsed panels */
+  .writing-mode-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
 }

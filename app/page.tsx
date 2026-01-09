@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { Group, Panel, Separator, usePanelRef } from "react-resizable-panels";
 import { Header } from "@/components/layout";
 import { EmailPanel, GmailConnectionCard } from "@/components/gmail";
-import { BidList } from "@/components/bids";
-import { createGroupedBidList, type GroupedBidList, type ProcessingState, INITIAL_PROCESSING_STATE } from "@/lib/bids";
+import { BidList, BidCalendar } from "@/components/bids";
+import { createGroupedBidList, type GroupedBidList, type ProcessingState, INITIAL_PROCESSING_STATE, type BidItem } from "@/lib/bids";
 import type { ParsedEmail } from "@/lib/gmail/types";
 import type { ExtractedData } from "@/lib/extraction/schemas";
 import type { ClusteringResult } from "@/lib/clustering/types";
@@ -22,15 +23,16 @@ export default function Home() {
 
   // Processing state
   const [processing, setProcessing] = useState<ProcessingState>(INITIAL_PROCESSING_STATE);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // UI state
   const [highlightEmailId, setHighlightEmailId] = useState<string | null>(null);
+  const [calendarCollapsed, setCalendarCollapsed] = useState(false);
+  const [highlightDate, setHighlightDate] = useState<Date | null>(null);
 
   // Ref to track if processing is cancelled
   const processingCancelled = useRef(false);
-  // Ref to EmailPanel for refresh
-  const emailPanelRef = useRef<{ refresh: () => void } | null>(null);
+  // Ref to calendar panel for collapse/expand
+  const calendarPanelRef = useRef<any>(null);
 
   /**
    * Check Gmail connection status on mount
@@ -40,7 +42,6 @@ export default function Home() {
       try {
         const response = await fetch("/api/auth/gmail");
         const data = await response.json();
-        // API returns isAuthenticated, we use it as isConnected
         setIsGmailConnected(data.isAuthenticated === true);
         if (data.email) {
           setConnectedEmail(data.email);
@@ -121,13 +122,11 @@ export default function Home() {
 
       const result = await response.json();
       if (result.success && result.data) {
-        // Add to extractions (avoid duplicates)
         setExtractions((prev) => {
           const filtered = prev.filter((e) => e.emailId !== email.id);
           return [...filtered, result.data];
         });
 
-        // Update bid list with new extraction
         setExtractions((prev) => {
           const groupedBidList = createGroupedBidList(prev, emails);
           setBidList(groupedBidList);
@@ -168,13 +167,11 @@ export default function Home() {
       const results: ExtractedData[] = [];
       let completed = 0;
 
-      // Process in chunks of MAX_CONCURRENT
       for (let i = 0; i < emailBatch.length; i += MAX_CONCURRENT) {
         if (processingCancelled.current) break;
 
         const chunk = emailBatch.slice(i, i + MAX_CONCURRENT);
         
-        // Process chunk in parallel
         const chunkResults = await Promise.allSettled(
           chunk.map(async (email) => {
             const response = await fetch("/api/extract", {
@@ -198,7 +195,6 @@ export default function Home() {
           })
         );
 
-        // Collect successful results
         for (const result of chunkResults) {
           if (result.status === "fulfilled" && result.value) {
             results.push(result.value);
@@ -230,7 +226,6 @@ export default function Home() {
     });
 
     try {
-      // Step 1: Extract entities from each email (concurrent batching)
       const extractedData = await processEmailBatch(emails, (completed) => {
         setProcessing((prev) => ({
           ...prev,
@@ -247,7 +242,6 @@ export default function Home() {
 
       setExtractions(extractedData);
 
-      // Step 2: Cluster emails by project
       setProcessing((prev) => ({
         ...prev,
         stage: "clustering",
@@ -278,7 +272,7 @@ export default function Home() {
                 purchaserCompany: ext.purchaser?.companyName || null,
               };
             }),
-            config: { useAI: false }, // Use rule-based to avoid API issues
+            config: { useAI: false },
           }),
         });
 
@@ -290,7 +284,6 @@ export default function Home() {
         console.error("Clustering failed:", error);
       }
 
-      // Step 3: Create grouped bid list
       setProcessing((prev) => ({
         ...prev,
         progress: 90,
@@ -309,7 +302,6 @@ export default function Home() {
         bidsCreated: groupedBidList.summary.totalBids,
       });
 
-      // Reset to idle after a short delay
       setTimeout(() => {
         setProcessing((prev) => ({
           ...prev,
@@ -323,19 +315,7 @@ export default function Home() {
         error: error instanceof Error ? error.message : "Processing failed",
       });
     }
-  }, [emails]);
-
-  /**
-   * Refresh: Clear data and re-fetch emails
-   */
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    setExtractions([]);
-    setBidList(null);
-    // Don't clear emails - let EmailPanel handle refresh
-    setProcessing(INITIAL_PROCESSING_STATE);
-    setIsRefreshing(false);
-  }, []);
+  }, [emails, processEmailBatch]);
 
   /**
    * Download bid list as JSON
@@ -360,6 +340,33 @@ export default function Home() {
   const handleEmailClick = useCallback((emailId: string) => {
     setHighlightEmailId(emailId);
   }, []);
+
+  /**
+   * Handle calendar day click - scroll to bids for that date
+   */
+  const handleCalendarDayClick = useCallback((date: Date) => {
+    setHighlightDate(date);
+    // Clear highlight after animation
+    setTimeout(() => setHighlightDate(null), 2000);
+  }, []);
+
+  /**
+   * Toggle calendar collapse
+   */
+  const handleToggleCalendar = useCallback(() => {
+    setCalendarCollapsed((prev) => !prev);
+    // Use panel API to collapse/expand if available
+    if (calendarPanelRef.current) {
+      if (calendarCollapsed) {
+        calendarPanelRef.current.expand();
+      } else {
+        calendarPanelRef.current.collapse();
+      }
+    }
+  }, [calendarCollapsed]);
+
+  // Get all bids as flat array for calendar
+  const allBids: BidItem[] = bidList?.groups.flatMap(g => g.bids) ?? [];
 
   return (
     <div className="h-screen flex flex-col bg-neutral-50">
@@ -403,29 +410,74 @@ export default function Home() {
         </div>
       )}
 
-      {/* Main Content: Side-by-Side Panels */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Left Panel: Email List + Viewer */}
-        <div className="w-[400px] flex-shrink-0 h-full min-h-0">
-          <EmailPanel
-            isConnected={isGmailConnected}
-            onConnectionRequired={() => setShowConnectionModal(true)}
-            onEmailsLoaded={handleEmailsLoaded}
-            highlightEmailId={highlightEmailId}
-            onProcessEmail={handleProcessSingleEmail}
-            onProcessAll={handleProcessEmails}
-            isProcessing={processing.stage === "extracting" || processing.stage === "clustering"}
-          />
-        </div>
+      {/* Main Content: 3-Panel Resizable Layout */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Group orientation="horizontal" className="h-full">
+          {/* Left Panel: Email List + Viewer */}
+          <Panel 
+            id="email-panel"
+            defaultSize={25} 
+            minSize={15} 
+            maxSize={40}
+            className="h-full"
+          >
+            <EmailPanel
+              isConnected={isGmailConnected}
+              onConnectionRequired={() => setShowConnectionModal(true)}
+              onEmailsLoaded={handleEmailsLoaded}
+              highlightEmailId={highlightEmailId}
+              onProcessEmail={handleProcessSingleEmail}
+              onProcessAll={handleProcessEmails}
+              isProcessing={processing.stage === "extracting" || processing.stage === "clustering"}
+            />
+          </Panel>
 
-        {/* Right Panel: Bid List */}
-        <div className="flex-1 h-full min-h-0 bg-neutral-100">
-          <BidList
-            bidList={bidList}
-            onEmailClick={handleEmailClick}
-            isLoading={processing.stage === "extracting" || processing.stage === "clustering"}
-          />
-        </div>
+          {/* Resize Handle */}
+          <Separator className="w-1.5 bg-neutral-200 hover:bg-bv-blue-400 transition-colors cursor-col-resize" />
+
+          {/* Middle Panel: Bid List */}
+          <Panel 
+            id="bid-panel"
+            defaultSize={50} 
+            minSize={30}
+            className="h-full"
+          >
+            <div className="h-full bg-neutral-100">
+              <BidList
+                bidList={bidList}
+                onEmailClick={handleEmailClick}
+                isLoading={processing.stage === "extracting" || processing.stage === "clustering"}
+              />
+            </div>
+          </Panel>
+
+          {/* Resize Handle */}
+          <Separator className="w-1.5 bg-neutral-200 hover:bg-bv-blue-400 transition-colors cursor-col-resize" />
+
+          {/* Right Panel: Calendar (Collapsible) */}
+          <Panel 
+            id="calendar-panel"
+            panelRef={calendarPanelRef}
+            defaultSize={25} 
+            minSize={calendarCollapsed ? 3 : 15}
+            maxSize={35}
+            collapsible
+            collapsedSize={3}
+            onResize={(size) => {
+              const numSize = typeof size === 'number' ? size : parseFloat(String(size));
+              if (numSize <= 3) setCalendarCollapsed(true);
+              else setCalendarCollapsed(false);
+            }}
+            className="h-full"
+          >
+            <BidCalendar
+              bids={allBids}
+              onDayClick={handleCalendarDayClick}
+              isCollapsed={calendarCollapsed}
+              onToggleCollapse={handleToggleCalendar}
+            />
+          </Panel>
+        </Group>
       </div>
 
       {/* Gmail Connection Modal Overlay */}
