@@ -28,6 +28,7 @@
 | 3 | Seller Inference | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 4 | Project Clustering | ✅ Complete | 2026-01-08 | 2026-01-08 |
 | 5 | Demo UI | ✅ Complete | 2026-01-08 | 2026-01-08 |
+| 6 | GreenHack Demo Enhancements | ✅ Complete | 2026-01-09 | 2026-01-09 |
 
 ---
 
@@ -297,6 +298,59 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 
 ---
 
+## Stage 6: GreenHack Demo Enhancements
+
+### Status: ✅ Complete
+
+### Objectives
+- Enable multi-purchaser consolidation (multiple purchasers per project)
+- Add email signature parsing for purchaser identification
+- Fix project clustering to merge related emails properly
+- Update UI to show project-centric view with multiple purchasers
+
+### Demo Context
+- GreenHack demo with mechanical sales rep (DelRen) and manufacturer
+- Key feature: automated email inbox → bid list
+- Show same project with multiple purchasers (Bay Mechanical, ABC Mechanical)
+- Internal sales engineers use tool - purchaser info often in email signatures, not from-address
+
+### Phase 1: Data Model Updates ✅
+- [x] Add `Purchaser` type for individual contractors with due dates
+- [x] Update `BidItem` to support `purchasers: Purchaser[]` array
+- [x] Add `source` field to extraction schema for purchaser source tracking
+
+### Phase 2: Extraction Prompt Enhancement ✅
+- [x] Update `EXTRACTION_SYSTEM_PROMPT` for email signature parsing
+- [x] Add instructions to detect forwarded message content
+- [x] Handle internal domain from-address → look in body for purchaser
+
+### Phase 3: Consolidation Logic ✅
+- [x] Enable `mergeBidsByCluster()` in processing flow
+- [x] Update merge logic to aggregate purchasers by company name
+- [x] Update `createGroupedBidList()` to call merge automatically
+
+### Phase 4: UI Updates ✅
+- [x] Update `BidCard` for multi-purchaser display
+- [x] Show purchaser list with individual due dates
+- [x] Display purchaser source indicator (signature, forwarded, etc.)
+
+### Files to Modify
+| File | Changes |
+|------|---------|
+| `lib/bids/types.ts` | Add `Purchaser` type, update `BidItem` |
+| `lib/extraction/schemas.ts` | Add `bidderSource` field |
+| `lib/ai/prompts.ts` | Signature parsing instructions |
+| `lib/bids/grouping.ts` | Enable merge, aggregate purchasers |
+| `components/bids/BidCard.tsx` | Multi-purchaser UI |
+| `app/page.tsx` | Wire up merge logic |
+
+### Future Improvements (Post-Demo)
+| Item | Description |
+|------|-------------|
+| Configurable internal domain | Replace hardcoded `@buildvision.io` in extraction prompt with configurable setting. Current implementation is demo-specific; production should allow sales rep orgs to configure their own domain for "internal vs external" sender detection. |
+
+---
+
 ## Lessons Learned
 
 | Stage | Insight |
@@ -308,4 +362,5 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 | 5 | API responses should have consistent format (always include `success` field) |
 | 5 | Concurrent processing significantly speeds up batch operations |
 | 5 | PostCSS config required for Tailwind v4 (`@tailwindcss/postcss`) |
-| 1 | Token persistence needed for Next.js dev mode (hot reload clears in-memory state) |
+| 6 | mergeBidsByCluster() existed but was never called - always check if functions are actually used |
+| 6 | Email signature parsing critical when internal reps forward emails |

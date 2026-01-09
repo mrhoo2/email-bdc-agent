@@ -23,12 +23,27 @@ export const ConfidenceSchema = z.number().min(0).max(1);
 // Extraction Output Schemas
 // ============================================
 
+/**
+ * Source of bidder/purchaser information extraction
+ */
+export const BidderSourceSchema = z.enum([
+  "signature",    // Extracted from email signature in body
+  "forwarded",    // Extracted from forwarded message content  
+  "header",       // From email "From" header
+  "body",         // From email body content
+  "inferred",     // AI-inferred from context
+]);
+
+export type BidderSource = z.infer<typeof BidderSourceSchema>;
+
 export const PurchaserIdentitySchema = z.object({
   companyName: z.string().min(1),
   contactName: z.string().nullable().optional(),
   contactEmail: z.string().email().nullable().optional(),
   contactPhone: z.string().nullable().optional(),
   confidence: ConfidenceSchema,
+  /** Where the purchaser info was extracted from */
+  source: BidderSourceSchema.optional().default("body"),
 });
 
 export const ProjectSignalsSchema = z.object({

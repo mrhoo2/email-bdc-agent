@@ -20,56 +20,54 @@
 
 ## Current Focus
 
-**Stage:** 5 - Demo UI ✅ COMPLETE (with refinements)
+**Stage:** 6 - GreenHack Demo Preparation ✅ COMPLETE
 
-**Status:** Stage 5 fully implemented with UI fixes and improvements
+**Status:** Complete - Multi-purchaser consolidation and signature parsing implemented
 
-**Latest Changes (January 8, 2026):**
-- [x] Fixed email API response format (`success: true` field)
-- [x] Fixed scroll functionality in both email and bid panels
-- [x] Added concurrent LLM processing (max 15 parallel calls)
-- [x] Added process single email functionality
-- [x] Added Download JSON button for exporting bid results
-- [x] Header shows connected Gmail account with disconnect option
-- [x] PostCSS configured with `@tailwindcss/postcss`
-
-**Implementation Details:**
-- **Header:** BuildVision logo + "Email BDC Agent" title + stats + Download JSON + connection status
-- **Left Panel (400px):** Email list with inline viewer, Process All button, Refresh button
-- **Right Panel (flexible):** Bid list grouped by date (Overdue, Today, Tomorrow, This Week, etc.)
-- **Data Flow:** Process Emails → Extract (15 concurrent) → Cluster → createGroupedBidList()
-- **Scroll Fix:** Added `min-h-0` to flex containers and `overflow-y-auto` to ScrollArea viewport
+**Demo Context:**
+- GreenHack prioritizes automated project rekeying to avoid manual data entry
+- Demo will show: Email inbox → Automated bid list with multiple purchasers per project
+- Key scenario: Bay Mechanical + ABC Mechanical requesting quotes for same project
 
 ---
 
-## Recent Session Work
+## GreenHack Demo Implementation - COMPLETED
 
-### Session: January 8, 2026 (Late)
+### Problem Solved
+The app now consolidates multiple emails into project-centric bid cards with multiple purchasers. The `mergeBidsByCluster()` function is now called automatically in `createGroupedBidList()`.
 
-**Issues Addressed:**
-1. "Failed to fetch emails" error - API returned `{ emails }` but UI expected `{ success: true, emails }`
-2. Scroll not working in email panel (only when email selected)
-3. Scroll not working in bid list panel
+### Phase 1: Data Model Updates ✅
+- [x] Added `Purchaser` type for individual contractors
+- [x] Updated `BidItem` to support `purchasers: Purchaser[]` array
+- [x] Added `source` field to track extraction source
 
-**Fixes Applied:**
-1. Updated `/api/emails/route.ts` to include `success: true` in all responses
-2. Added `overflow-y-auto` to ScrollArea viewport component
-3. Added `min-h-0` to all flex containers in EmailPanel, BidList, and page.tsx
+### Phase 2: Extraction Prompt Enhancement ✅
+- [x] Updated `EXTRACTION_SYSTEM_PROMPT` for email signature parsing
+- [x] Added instructions to detect forwarded message content
+- [x] Handle case where "from" is internal domain, purchaser is in body
 
-**Commits:**
-- `a00489d` - feat: Stage 5 UI improvements and fixes
-- `a17fb66` - fix: scroll functionality in email and bid panels
+### Phase 3: Consolidation Logic ✅
+- [x] Enabled `mergeBidsByCluster()` in processing flow
+- [x] Updated merge logic to aggregate purchasers by company name
+- [x] `createGroupedBidList()` now calls merge automatically
+
+### Phase 4: UI Updates ✅
+- [x] Updated `BidCard` to show multiple purchasers per project
+- [x] Display purchaser source (signature, forwarded, etc.)
+- [x] New layout with purchasers list and individual due dates
 
 ---
 
-## AI Model Configuration (January 2026)
+## Files to Modify
 
-| Provider | Model | Status |
-|----------|-------|--------|
-| Google | `gemini-3-pro-preview` | ✅ Active - Primary extraction |
-| Google | `gemini-3-flash-preview` | ✅ Active - Fast tier (clustering) |
-| OpenAI | `gpt-5.2` | ⏸️ Available |
-| Anthropic | `claude-sonnet-4-5-20250929` | ⏸️ Available |
+| File | Phase | Changes |
+|------|-------|---------|
+| `lib/bids/types.ts` | 1 | Add `Bidder` type, update `BidItem` |
+| `lib/extraction/schemas.ts` | 1 | Add `bidderSource` field |
+| `lib/ai/prompts.ts` | 2 | Signature parsing instructions |
+| `lib/bids/grouping.ts` | 3 | Enable merge, aggregate bidders |
+| `components/bids/BidCard.tsx` | 4 | Multi-bidder UI |
+| `app/page.tsx` | 3 | Wire up merge logic |
 
 ---
 
@@ -77,16 +75,10 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-09 | Parse email signatures for bidder info | Internal sales engineers forward emails; bidder is in body, not from-address |
+| 2026-01-09 | Project-centric view with multiple bidders | Demo needs to show same project with different bidders |
+| 2026-01-09 | Enable mergeBidsByCluster | Function exists but unused; fixes consolidation |
 | 2026-01-08 | Add `success` field to all API responses | Consistent API response format for frontend |
-| 2026-01-08 | Use `min-h-0` for flex scroll containers | Flexbox requires this to allow shrinking below content height |
-| 2026-01-08 | 15 concurrent LLM calls | Balance between speed and API rate limits |
-| 2026-01-08 | Stage 5 complete | Demo UI fully functional |
-
----
-
-## Open Questions
-
-- None currently
 
 ---
 
@@ -96,53 +88,13 @@
 
 ---
 
-## Completed Stages
-
-### Stage 0: Foundation ✅
-- Next.js 15 + TypeScript
-- ShadCN UI (new-york style)
-- AI provider abstraction
-- BuildVision design tokens
-
-### Stage 1: Gmail Integration ✅
-- OAuth2 authentication
-- Email fetching with pagination
-- Email viewer component
-- Token persistence (file-based)
-
-### Stage 2: Entity Extraction ✅
-- Zod validation schemas
-- Extraction service with Gemini 3 Pro Preview
-- /api/extract API endpoint
-- ExtractionCard UI component
-
-### Stage 3: Seller Inference ✅
-- Seller types and Zod schemas
-- Email recipient pattern matching
-- @buildvision.io domain detection
-
-### Stage 4: Project Clustering ✅
-- AI-assisted clustering with Gemini Flash
-- Rule-based clustering with Union-Find
-- /api/cluster API endpoint
-
-### Stage 5: Demo UI ✅
-- BuildVision Labs Header with connection status
-- Side-by-side panel layout with proper scrolling
-- EmailPanel with process buttons
-- BidList grouped by date
-- Concurrent LLM processing
-- JSON export functionality
-
----
-
 ## Notes
 
-*Session notes and context that should carry forward to next session.*
+*Session notes and context for GreenHack demo*
 
-- Gmail integration working with bids@buildvision.io
-- Repository: `git@github.com:mrhoo2/email-bdc-agent.git`
-- Latest commit: `a17fb66` (scroll fixes)
-- All stages complete - ready for production integration or additional features
-- PostCSS configuration: `postcss.config.mjs` with `@tailwindcss/postcss`
-- Side-by-side panel layout
+- Demo for mechanical sales rep and manufacturer
+- GreenHack contract is significant
+- Email signature parsing critical for internal sales engineer use case
+- Multiple bidders per project is key demo requirement
+- Someone else handling demo email templates
+### Stage 0: Foundation ✅
