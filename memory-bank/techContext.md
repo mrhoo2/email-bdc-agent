@@ -12,6 +12,7 @@
 | `progress.md` | Stage completion status, test results, iteration notes |
 | `systemPatterns.md` | Data models, architecture decisions, extraction patterns |
 | `techContext.md` | Dependencies, environment setup, API configurations (this file) |
+| `techContext.template.md` | Template for techContext.md (public, committed) |
 | `project-template.md` | Business requirements, scope, goals |
 | `bv-style-guide.md` | BuildVision design system reference |
 
@@ -29,6 +30,7 @@
 | **Tailwind CSS** | 4.x | With CSS variables for theming |
 | **ShadCN/UI** | latest | Component library (new-york style) |
 | **Bun** | 1.x | Package manager |
+| **PostCSS** | latest | With `@tailwindcss/postcss` |
 
 ### ShadCN Configuration
 
@@ -92,6 +94,7 @@ Use the following `components.json` configuration:
 | Package | Purpose |
 |---------|---------|
 | `googleapis` | Google APIs (Gmail, OAuth) |
+| `string-similarity` | Fuzzy string matching for clustering |
 
 ### Future Dependencies (Postgres Integration)
 

@@ -100,7 +100,6 @@
 - [x] Extraction service implemented
 - [x] API route created (/api/extract)
 - [x] ExtractionCard UI component built
-- [x] Main page updated (3-column layout)
 - [x] Tested with real bid emails
 
 ### Files Created
@@ -118,10 +117,6 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
 | Purchaser | Michael Powers | 80% |
 | Project | Byron WWTP - Improvements | 90% |
 | Bid Due Date | Thu, Jan 8, 2026 | 70% (inferred) |
-
-**Extraction Notes:**
-- Purchaser company name not explicitly stated (sender uses generic Gmail)
-- Bid due date inferred from "by the end of this week" phrase
 
 ### AI Model Used
 `gemini-3-pro-preview` via Google Generative AI API
@@ -155,17 +150,6 @@ Tested on real email "Byron WWTP - Improvements" from bids@buildvision.io:
   - TO field: 95% confidence
   - CC field: 85% confidence
   - BCC field: 75% confidence
-- **Name Inference:** Extracts name from email username (e.g., "john.doe" → "John Doe")
-- **ID Generation:** Stable ID from email address for future Postgres integration
-
-### Architecture
-```
-Email Recipients → inferSellerFromEmail() → InferredSeller
-                         ↓
-              Pattern match @buildvision.io
-                         ↓
-              Create Seller with name/email/id
-```
 
 ---
 
@@ -185,46 +169,23 @@ Email Recipients → inferSellerFromEmail() → InferredSeller
 - [x] Rule-based clustering with Union-Find algorithm
 - [x] /api/cluster API endpoint created
 - [x] FAST_MODELS tier added to AI provider
-- [x] createFastAIProviderFromEnv function added
 
 ### Files Created
-- `lib/clustering/types.ts` - ProjectCluster, ClusteringResult, EmailForClustering schemas
-- `lib/clustering/similarity.ts` - String similarity, signal weighting, matrix calculation
-- `lib/clustering/index.ts` - Main clustering service with AI + rule-based methods
-- `app/api/cluster/route.ts` - POST endpoint for clustering
+- `lib/clustering/types.ts`
+- `lib/clustering/similarity.ts`
+- `lib/clustering/index.ts`
+- `app/api/cluster/route.ts`
 
 ### Implementation Details
-- **Hybrid Approach:**
-  1. Thread-based grouping (emails in same thread = same project)
-  2. Rule-based similarity scoring (weighted signals)
-  3. AI-assisted clustering for intelligent grouping
-
-- **Similarity Signals:** subject (0.2), projectName (0.25), address (0.35), GC (0.1), engineer (0.05), architect (0.05)
+- **Hybrid Approach:** Rule-based similarity scoring + AI-assisted clustering
 - **AI Model:** `gemini-3-flash-preview` (fast tier for speed)
 - **Similarity Threshold:** 0.6 (configurable)
-- **Batch Processing:** Max 50 emails per AI call
-
-### Architecture
-```
-Emails with ExtractedData → clusterEmails()
-                                   ↓
-                    ┌──────────────┴──────────────┐
-                    ↓                             ↓
-           useAI: true                    useAI: false
-                    ↓                             ↓
-         aiClusterEmails()           clusterEmailsRuleBased()
-    (Gemini Flash processing)         (Union-Find algorithm)
-                    ↓                             ↓
-                    └──────────────┬──────────────┘
-                                   ↓
-                          ProjectCluster[]
-```
 
 ---
 
 ## Stage 5: Demo UI
 
-### Status: ✅ Complete
+### Status: ✅ Complete (with refinements)
 
 ### Objectives
 - Build consistent BuildVision Labs UI
@@ -241,49 +202,80 @@ Emails with ExtractedData → clusterEmails()
 - [x] Create EmailPanel component (combined list + viewer)
 - [x] Update main page with side-by-side layout
 - [x] Wire up data flow: Fetch → Extract → Cluster → Display
+- [x] Add concurrent LLM processing (15 parallel)
+- [x] Add process single email functionality
+- [x] Add Download JSON button
+- [x] Add Gmail connection status in header
+- [x] Fix scroll functionality in both panels
+- [x] Fix email API response format
 
-### Files Created
-- `components/layout/Header.tsx` - BuildVision Labs header with logo
+### Files Created/Modified
+- `components/layout/Header.tsx` - BuildVision Labs header with logo, stats, connection status
 - `components/layout/index.ts` - Layout component exports
 - `lib/bids/types.ts` - BidItem, BidGroup, DateGroup types
-- `lib/bids/grouping.ts` - Date grouping utilities (getDateGroup, createGroupedBidList)
+- `lib/bids/grouping.ts` - Date grouping utilities
 - `lib/bids/index.ts` - Bid module exports
 - `components/bids/BidCard.tsx` - Individual bid card display
 - `components/bids/BidList.tsx` - Grouped bid list with date headers
 - `components/bids/index.ts` - Bid component exports
 - `components/gmail/EmailPanel.tsx` - Combined email list + viewer panel
+- `components/ui/scroll-area.tsx` - Fixed viewport overflow
+- `app/page.tsx` - Main page with concurrent processing
+- `app/api/emails/route.ts` - Added `success: true` to responses
+- `postcss.config.mjs` - PostCSS configuration for Tailwind
 
-### Implementation Details
-- **Layout:** Full-height side-by-side panels (400px left, flexible right)
-- **Header:** BuildVision logo from CDN, "Email BDC Agent" title, Process/Refresh buttons
-- **Left Panel:** Email list (scrollable) + inline email detail viewer
-- **Right Panel:** Bid list grouped by date (Overdue, Today, Tomorrow, This Week, etc.)
-- **Bid Cards:** Project name, address, bidder (purchaser), seller, due date
-- **Data Flow:** Process button → Extract each email → Cluster → createGroupedBidList()
-- **Progress Banner:** Shows extraction/clustering progress with cancel option
-
-### Architecture
+### UI Architecture
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│ [Header: BuildVision Logo | Email BDC Agent | Process | Refresh]    │
+│ [Header: Logo | Email BDC Agent | Stats | Download JSON | Account]  │
 ├───────────────────┬──────────────────────────────────────────────────┤
 │                   │                                                  │
 │  [EmailPanel]     │  [BidList]                                      │
-│  - Email List     │  - Date Group Headers                           │
-│  - Email Detail   │  - BidCard (project, bidder, seller, due)       │
+│  - Email List     │  - Overdue (red)                                │
+│  - Process All    │  - Today (yellow)                               │
+│  - Refresh        │  - Tomorrow (blue)                              │
+│  - Email Detail   │  - This Week, Next Week, Later                  │
+│  (scrollable)     │  (scrollable)                                   │
 │                   │                                                  │
 └───────────────────┴──────────────────────────────────────────────────┘
 ```
 
+### Key Features Implemented
+1. **Concurrent Processing:** Max 15 parallel LLM calls using `Promise.allSettled()`
+2. **Process Single Email:** Play button on each email row
+3. **Download JSON:** Export bid list as JSON file
+4. **Connection Status:** Green badge with email, disconnect button
+5. **Scroll Fix:** `min-h-0` on flex containers, `overflow-y-auto` on viewport
+
 ---
 
-## Project Brief Adjustments
+## Bug Fixes (Stage 5 Refinements)
 
-| Date | Adjustment | Reason |
-|------|------------|--------|
-| 2026-01-08 | Skip database persistence | Will integrate with main BuildVision app |
-| 2026-01-08 | Focus on Gemini 3 Pro Preview only | Faster iteration |
-| 2026-01-08 | AI Models Reference added to global template | Standardize across projects |
+### Fix 1: Email API Response Format
+**Problem:** EmailPanel expected `{ success: true, emails }` but API returned `{ emails }`
+**Solution:** Added `success: true` to all `/api/emails` responses
+
+### Fix 2: Scroll Functionality
+**Problem:** Panels didn't scroll - content overflowed instead
+**Solution:** 
+- Added `overflow-y-auto` to ScrollArea viewport component
+- Added `min-h-0` to all flex containers (EmailPanel, BidList, page.tsx panels)
+
+### Fix 3: Tailwind CSS Not Working
+**Problem:** Styles not applying, build errors
+**Solution:** 
+- Added `@tailwindcss/postcss` package
+- Created `postcss.config.mjs` with proper configuration
+
+---
+
+## Commit History
+
+| Commit | Description |
+|--------|-------------|
+| 6395052 | Stage 4 complete: Project clustering with AI-assisted grouping |
+| a00489d | feat: Stage 5 UI improvements and fixes |
+| a17fb66 | fix: scroll functionality in email and bid panels |
 
 ---
 
@@ -310,20 +302,10 @@ Emails with ExtractedData → clusterEmails()
 | Stage | Insight |
 |-------|---------|
 | 1 | Token persistence needed for Next.js dev mode (hot reload clears in-memory state) |
-| 1 | File-based token storage works well for development |
 | 2 | Zod validation ensures AI output conforms to expected schema |
-| 2 | Model names must be exact API identifiers (e.g., `gemini-3-pro-preview` not `gemini-3-pro`) |
-| 2 | Confidence scores help identify uncertain extractions |
 | 4 | Use fast-tier models for bulk processing tasks |
-| 4 | Centralize AI provider creation for consistent model selection |
-| 4 | Union-Find is efficient for clustering with transitive relationships |
-
----
-
-## Commit History
-
-| Commit | Description |
-|--------|-------------|
-| ab964af | Stage 1 complete: Gmail integration with AI model updates |
-| (pending) | Stage 2 complete: Entity extraction with Gemini 3 Pro Preview |
-- [ ] Grouping visualization built
+| 5 | Flexbox scroll requires `min-h-0` on containers |
+| 5 | API responses should have consistent format (always include `success` field) |
+| 5 | Concurrent processing significantly speeds up batch operations |
+| 5 | PostCSS config required for Tailwind v4 (`@tailwindcss/postcss`) |
+| 1 | Token persistence needed for Next.js dev mode (hot reload clears in-memory state) |

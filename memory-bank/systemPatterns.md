@@ -26,8 +26,8 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │  UI Layer (Next.js + React)                                         │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐                │
-│  │ Email Viewer │ │ Extraction   │ │ Bid List     │                │
-│  │              │ │ Comparison   │ │ Table        │                │
+│  │ Header       │ │ EmailPanel   │ │ BidList      │                │
+│  │ (connection) │ │ (list+view)  │ │ (grouped)    │                │
 │  └──────────────┘ └──────────────┘ └──────────────┘                │
 ├─────────────────────────────────────────────────────────────────────┤
 │  Service Layer                                                      │
@@ -37,7 +37,7 @@
 │  └──────────────┘ └──────────────┘ └──────────────┘                │
 │  ┌──────────────┐ ┌──────────────┐                                  │
 │  │ Seller       │ │ Bid List     │                                  │
-│  │ Inference    │ │ Aggregation  │                                  │
+│  │ Inference    │ │ Grouping     │                                  │
 │  └──────────────┘ └──────────────┘                                  │
 ├─────────────────────────────────────────────────────────────────────┤
 │  AI Provider Abstraction                                            │
@@ -48,10 +48,48 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │  Data Layer                                                         │
 │  ┌──────────────┐ ┌──────────────┐                                  │
-│  │ Gmail API    │ │ Postgres     │                                  │
-│  │ (Read-only)  │ │ (Future)     │                                  │
+│  │ Gmail API    │ │ JSON Export  │                                  │
+│  │ (Read-only)  │ │ (Download)   │                                  │
 │  └──────────────┘ └──────────────┘                                  │
 └─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## UI Layout Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│ [Header]                                                             │
+│ ┌────────┬──────────────────┬───────────┬──────────┬───────────────┐│
+│ │ Logo   │ Email BDC Agent  │ Stats     │ Download │ Account       ││
+│ │        │                  │ (emails/  │ JSON     │ (email+disc.) ││
+│ │        │                  │ bids)     │          │               ││
+│ └────────┴──────────────────┴───────────┴──────────┴───────────────┘│
+├───────────────────────┬──────────────────────────────────────────────┤
+│ [EmailPanel - 400px]  │ [BidList - flexible]                        │
+│ ┌───────────────────┐ │ ┌──────────────────────────────────────────┐│
+│ │ Header            │ │ │ Summary Header                           ││
+│ │ - Emails (count)  │ │ │ - Total bids, Overdue, Today             ││
+│ │ - Process All     │ │ │ - Generated timestamp                    ││
+│ │ - Refresh         │ │ └──────────────────────────────────────────┘│
+│ └───────────────────┘ │ ┌──────────────────────────────────────────┐│
+│ ┌───────────────────┐ │ │ [ScrollArea]                             ││
+│ │ [ScrollArea]      │ │ │ ┌────────────────────────────────────┐   ││
+│ │ - Email Row 1     │ │ │ │ Overdue (red)                      │   ││
+│ │   - From, Date    │ │ │ │ - BidCard                          │   ││
+│ │   - Subject       │ │ │ │ - BidCard                          │   ││
+│ │   - Preview       │ │ │ └────────────────────────────────────┘   ││
+│ │   - Play button   │ │ │ ┌────────────────────────────────────┐   ││
+│ │ - Email Row 2     │ │ │ │ Today (yellow)                     │   ││
+│ │   [Expanded]      │ │ │ │ - BidCard                          │   ││
+│ │   - Full details  │ │ │ └────────────────────────────────────┘   ││
+│ │   - Body          │ │ │ ┌────────────────────────────────────┐   ││
+│ │                   │ │ │ │ Tomorrow (blue)                    │   ││
+│ │                   │ │ │ │ - BidCard                          │   ││
+│ │                   │ │ │ └────────────────────────────────────┘   ││
+│ └───────────────────┘ │ └──────────────────────────────────────────┘│
+└───────────────────────┴──────────────────────────────────────────────┘
 ```
 
 ---
@@ -61,24 +99,6 @@
 ### Email
 
 ```typescript
-interface RawEmail {
-  id: string;
-  threadId: string;
-  labelIds: string[];
-  snippet: string;
-  historyId: string;
-  internalDate: string;  // Unix timestamp in ms
-  payload: {
-    partId?: string;
-    mimeType: string;
-    filename?: string;
-    headers: Array<{ name: string; value: string }>;
-    body?: { size: number; data?: string };
-    parts?: EmailPart[];
-  };
-  sizeEstimate: number;
-}
-
 interface ParsedEmail {
   id: string;
   threadId: string;
@@ -87,12 +107,11 @@ interface ParsedEmail {
   cc: EmailAddress[];
   bcc: EmailAddress[];
   subject: string;
-  body: {
-    text: string;
-    html?: string;
-  };
+  body: { text: string; html?: string } | string;
   date: Date;
   receivedAt: Date;
+  labels: string[];
+  snippet: string;
   attachments: Attachment[];
 }
 
@@ -151,211 +170,169 @@ interface BidDueDate {
 }
 ```
 
-### Seller
+### Bid List Types
 
 ```typescript
-interface Seller {
+type DateGroup = 'overdue' | 'today' | 'tomorrow' | 'this_week' | 'next_week' | 'later' | 'no_date';
+
+interface BidItem {
   id: string;
-  name: string;
-  email: string;
-  territory?: string;
-  assignedPurchasers?: string[];  // For future Postgres integration
-}
-
-interface SellerInference {
-  seller: Seller | null;
-  source: 'email_recipient' | 'postgres_mapping' | 'inferred';
-  confidence: number;
-  reasoning: string;
-}
-```
-
-### Project
-
-```typescript
-interface Project {
-  id: string;
-  name: string;
-  address?: string;
-  generalContractor?: string;
-  engineer?: string;
-  architect?: string;
-  
-  emails: string[];        // Email IDs in this project
-  purchasers: Purchaser[];
-  sellers: Seller[];
-  
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface Purchaser {
-  id: string;
-  companyName: string;
-  contacts: Contact[];
-  bidDueDate?: Date;
-  assignedSeller?: Seller;
-}
-
-interface Contact {
-  name: string;
-  email: string;
-  phone?: string;
-}
-```
-
-### Bid List Output
-
-```typescript
-interface BidList {
-  generatedAt: Date;
-  inbox: string;
-  dateRange: {
-    from: Date;
-    to: Date;
-  };
-  
-  projects: ProjectBid[];
-  summary: {
-    totalProjects: number;
-    totalPurchasers: number;
-    totalBids: number;
-    upcomingDeadlines: number;
-  };
-}
-
-interface ProjectBid {
   project: {
-    id: string;
     name: string;
     address?: string;
-    gc?: string;
+    generalContractor?: string;
     engineer?: string;
     architect?: string;
   };
-  
-  bids: Bid[];
-}
-
-interface Bid {
-  purchaser: {
-    id: string;
+  bidder: {
     companyName: string;
-    contact: Contact;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
   };
-  seller: {
+  seller?: {
     id: string;
     name: string;
     email: string;
   };
-  dueDate: Date;
-  emails: string[];  // Related email IDs
-  status: 'pending' | 'submitted' | 'won' | 'lost' | 'no_bid';
-}
-```
-
----
-
-## AI Provider Abstraction
-
-### Interface Design
-
-```typescript
-interface AIProvider {
-  name: 'openai' | 'google' | 'anthropic';
-  extractEntities(email: ParsedEmail): Promise<ExtractedData>;
-  inferSeller(email: ParsedEmail, context: SellerContext): Promise<SellerInference>;
-}
-
-interface AIProviderConfig {
-  provider: 'openai' | 'google' | 'anthropic';
-  apiKey: string;
-  model: string;
-  temperature?: number;
-  maxTokens?: number;
-}
-
-// Factory function for provider switching
-function createAIProvider(config: AIProviderConfig): AIProvider;
-```
-
-### Model Defaults
-
-| Provider | Model | Use Case |
-|----------|-------|----------|
-| OpenAI | gpt-4o | Primary extraction |
-| Google | gemini-1.5-pro | Comparison/fallback |
-| Anthropic | claude-3-5-sonnet | Comparison/fallback |
-
----
-
-## Seller Inference Strategy
-
-### MVP Approach (Email Recipients)
-
-```typescript
-interface SellerInferenceStrategy {
-  // Primary: Check if any BuildVision seller email is in To/CC
-  fromRecipients(email: ParsedEmail): Seller | null;
-  
-  // Secondary: Check email domain for known seller patterns
-  fromDomain(email: ParsedEmail): Seller | null;
-  
-  // Fallback: Return null with flag for manual assignment
-  unknown(): null;
-}
-```
-
-### Future Postgres Integration
-
-```typescript
-interface SellerMappingRepository {
-  // Look up seller by purchaser company
-  findByPurchaser(purchaserCompany: string): Promise<Seller | null>;
-  
-  // Look up seller by territory/region
-  findByTerritory(region: string): Promise<Seller | null>;
-  
-  // Look up seller by email domain
-  findByDomain(domain: string): Promise<Seller | null>;
-}
-```
-
----
-
-## Project Clustering Algorithm
-
-### Similarity Signals
-
-| Signal | Weight | Description |
-|--------|--------|-------------|
-| Subject Match | 0.3 | Fuzzy match on email subject |
-| Address Match | 0.35 | Fuzzy match on project address |
-| Project Name | 0.25 | Fuzzy match on extracted project name |
-| GC/Engineer | 0.1 | Match on general contractor or engineer |
-
-### Clustering Approach
-
-```typescript
-interface ClusteringConfig {
-  similarityThreshold: number;  // Default: 0.7
-  signals: SignalWeight[];
-}
-
-interface ProjectCluster {
-  id: string;
-  name: string;
-  emails: string[];
+  dueDate?: Date;
+  emailIds: string[];
   confidence: number;
-  mergedFrom?: string[];  // If cluster was merged
 }
 
-// Algorithm: Agglomerative clustering with custom similarity function
-function clusterEmails(
-  emails: ExtractedData[],
-  config: ClusteringConfig
-): ProjectCluster[];
+interface BidGroup {
+  group: DateGroup;
+  label: string;
+  bids: BidItem[];
+  count: number;
+}
+
+interface GroupedBidList {
+  groups: BidGroup[];
+  summary: {
+    totalBids: number;
+    overdueCount: number;
+    todayCount: number;
+    thisWeekCount: number;
+  };
+  generatedAt: Date;
+}
+
+interface ProcessingState {
+  stage: 'idle' | 'extracting' | 'clustering' | 'complete' | 'error';
+  progress: number;
+  message: string;
+  emailsFetched: number;
+  emailsExtracted: number;
+  bidsCreated: number;
+  error?: string;
+}
 ```
+
+---
+
+## API Response Patterns
+
+All API endpoints follow a consistent response format:
+
+### Success Response
+```typescript
+{
+  success: true,
+  // ... endpoint-specific data
+}
+```
+
+### Error Response
+```typescript
+{
+  success?: false,
+  error: string,
+  message?: string
+}
+```
+
+### Endpoint Examples
+
+```typescript
+// GET /api/emails
+{ success: true, emails: ParsedEmail[], nextPageToken?: string, totalEstimate: number }
+
+// GET /api/emails?id=xxx
+{ success: true, email: ParsedEmail }
+
+// POST /api/extract
+{ success: true, data: ExtractedData }
+
+// POST /api/cluster
+{ success: true, data: ClusteringResult }
+
+// GET /api/auth/gmail
+{ isAuthenticated: boolean, email?: string }
+```
+
+---
+
+## Concurrent Processing Pattern
+
+```typescript
+// Process emails in batches with max concurrency
+const MAX_CONCURRENT = 15;
+
+async function processEmailBatch(
+  emails: ParsedEmail[],
+  onProgress: (completed: number) => void
+): Promise<ExtractedData[]> {
+  const results: ExtractedData[] = [];
+  let completed = 0;
+
+  // Process in chunks of MAX_CONCURRENT
+  for (let i = 0; i < emails.length; i += MAX_CONCURRENT) {
+    const chunk = emails.slice(i, i + MAX_CONCURRENT);
+    
+    // Process chunk in parallel
+    const chunkResults = await Promise.allSettled(
+      chunk.map(email => extractEntities(email))
+    );
+
+    // Collect successful results
+    for (const result of chunkResults) {
+      if (result.status === 'fulfilled' && result.value) {
+        results.push(result.value);
+      }
+      completed++;
+      onProgress(completed);
+    }
+  }
+
+  return results;
+}
+```
+
+---
+
+## Scroll Pattern for Flexbox
+
+Proper scrolling in flexbox containers requires:
+
+```typescript
+// Parent container: h-full + flex + min-h-0
+<div className="h-full flex flex-col min-h-0">
+  
+  // Fixed header: flex-shrink-0
+  <div className="flex-shrink-0">Header</div>
+  
+  // Scrollable area: flex-1 + min-h-0 + overflow-y-auto
+  <ScrollArea className="flex-1 min-h-0">
+    <div>Content that can scroll</div>
+  </ScrollArea>
+</div>
+
+// ScrollArea viewport needs overflow-y-auto
+<ScrollAreaPrimitive.Viewport className="... overflow-y-auto">
+```
+
+**Why `min-h-0`?** Flexbox items default to `min-height: auto`, preventing shrinking below content size. `min-h-0` allows the flex item to shrink, enabling overflow scrolling.
 
 ---
 
@@ -366,32 +343,34 @@ email-agent/
 ├── app/
 │   ├── globals.css              # BuildVision design tokens
 │   ├── layout.tsx               # Root layout
-│   ├── page.tsx                 # Main dashboard
+│   ├── page.tsx                 # Main dashboard (side-by-side panels)
 │   └── api/
-│       ├── auth/
-│       │   └── gmail/
-│       │       └── route.ts     # Gmail OAuth
-│       ├── emails/
-│       │   └── route.ts         # Email fetching
-│       ├── extract/
-│       │   └── route.ts         # Entity extraction
-│       └── process/
-│           └── route.ts         # Full pipeline
+│       ├── auth/gmail/          # Gmail OAuth
+│       │   ├── route.ts         # Auth status, initiate, disconnect
+│       │   └── callback/route.ts # OAuth callback
+│       ├── emails/route.ts      # Email fetching
+│       ├── extract/route.ts     # Entity extraction
+│       └── cluster/route.ts     # Project clustering
 ├── components/
-│   ├── ui/                      # ShadCN components
-│   ├── email/
-│   │   ├── EmailViewer.tsx
-│   │   └── EmailList.tsx
-│   ├── extraction/
-│   │   ├── ExtractionCard.tsx
-│   │   └── ModelComparison.tsx
-│   └── bids/
-│       ├── BidTable.tsx
-│       └── ProjectGroup.tsx
+│   ├── ui/                      # ShadCN components (scroll-area, button, etc.)
+│   ├── gmail/
+│   │   ├── EmailPanel.tsx       # Combined list + inline viewer
+│   │   ├── GmailConnectionCard.tsx
+│   │   └── index.ts
+│   ├── bids/
+│   │   ├── BidCard.tsx          # Individual bid display
+│   │   ├── BidList.tsx          # Grouped bid list with date headers
+│   │   └── index.ts
+│   ├── layout/
+│   │   ├── Header.tsx           # App header with connection status
+│   │   └── index.ts
+│   └── extraction/
+│       ├── ExtractionCard.tsx
+│       └── index.ts
 ├── lib/
-│   ├── utils.ts                 # ShadCN utility
+│   ├── utils.ts                 # ShadCN utility (cn)
 │   ├── ai/
-│   │   ├── index.ts             # Provider factory
+│   │   ├── index.ts             # Provider factory, FAST_MODELS
 │   │   ├── types.ts             # Common types
 │   │   ├── prompts.ts           # Extraction prompts
 │   │   └── providers/
@@ -406,15 +385,17 @@ email-agent/
 │   │   ├── index.ts             # Extraction service
 │   │   └── schemas.ts           # Zod schemas
 │   ├── sellers/
-│   │   ├── index.ts             # Seller lookup
+│   │   ├── index.ts
 │   │   ├── inference.ts         # Email-based inference
-│   │   └── postgres.ts          # Future: DB integration
-│   └── clustering/
-│       ├── index.ts             # Clustering service
-│       └── similarity.ts        # Similarity functions
-├── hooks/
-│   ├── useEmails.ts
-│   └── useBidList.ts
+│   │   └── types.ts
+│   ├── clustering/
+│   │   ├── index.ts             # Clustering service
+│   │   ├── similarity.ts        # Similarity functions
+│   │   └── types.ts
+│   └── bids/
+│       ├── index.ts             # Exports
+│       ├── grouping.ts          # Date grouping utilities
+│       └── types.ts             # BidItem, BidGroup, etc.
 ├── memory-bank/
 │   ├── activeContext.md
 │   ├── progress.md
@@ -422,6 +403,7 @@ email-agent/
 │   ├── techContext.md
 │   ├── project-template.md
 │   └── bv-style-guide.md
+├── postcss.config.mjs           # PostCSS config for Tailwind
 ├── .env.local
 ├── .gitignore
 ├── components.json
@@ -432,33 +414,19 @@ email-agent/
 
 ---
 
-## Design Patterns
+## Design Patterns Used
 
 ### Provider Pattern (AI Services)
-Used for AI provider abstraction - allows runtime switching between GPT/Gemini/Claude.
-
-### Repository Pattern (Seller Mapping)
-Abstracts data access for seller lookup - enables easy swap between inference and Postgres.
+Factory pattern for AI provider abstraction - allows runtime switching between GPT/Gemini/Claude.
 
 ### Strategy Pattern (Seller Inference)
-Allows different inference strategies to be plugged in (recipients, domain, AI-inferred).
+Different inference strategies: email recipients, domain matching, future Postgres lookup.
 
 ### Pipeline Pattern (Email Processing)
-Sequential processing: Fetch → Parse → Extract → Cluster → Output
+Sequential processing: Fetch → Extract (concurrent) → Cluster → Group → Display
 
----
-
-## API Design
-
-### Internal API Routes
-
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/auth/gmail` | GET/POST | Gmail OAuth flow |
-| `/api/emails` | GET | Fetch emails (with pagination) |
-| `/api/extract` | POST | Extract entities from email(s) |
-| `/api/process` | POST | Run full pipeline |
-| `/api/bids` | GET | Get generated bid list |
+### Concurrent Batch Pattern
+Process items in parallel batches with `Promise.allSettled()` for fault tolerance.
 
 ---
 
@@ -468,5 +436,7 @@ Sequential processing: Fetch → Parse → Extract → Cluster → Output
 
 - **No database for MVP:** All data is processed in-memory and exported to JSON
 - **Stateless extraction:** Each email can be processed independently
-- **Idempotent operations:** Re-processing same email produces same result
-- **Provider-agnostic prompts:** Same prompt structure works across all AI providers
+- **Concurrent processing:** 15 parallel LLM calls balance speed vs rate limits
+- **Consistent API format:** All endpoints return `{ success: true, ... }` or `{ error: string }`
+- **Flexbox scroll pattern:** `min-h-0` required on flex containers for proper overflow
+Allows different inference strategies to be plugged in (recipients, domain, AI-inferred).

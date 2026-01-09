@@ -20,57 +20,45 @@
 
 ## Current Focus
 
-**Stage:** 5 - Demo UI ✅ COMPLETE
+**Stage:** 5 - Demo UI ✅ COMPLETE (with refinements)
 
-**Status:** Stage 5 fully implemented with side-by-side panel layout
+**Status:** Stage 5 fully implemented with UI fixes and improvements
 
-**Completed Tasks:**
-- [x] Copy Header from Takeoffs with BuildVision Labs branding
-- [x] Create bid list types (`lib/bids/types.ts`)
-- [x] Create date grouping utilities (`lib/bids/grouping.ts`)
-- [x] Build BidCard component with project/purchaser/seller display
-- [x] Build BidList component with date-based grouping
-- [x] Create EmailPanel component (combined list + viewer)
-- [x] Update main page with side-by-side layout
-- [x] Wire up data flow: Fetch → Extract → Cluster → Display
-- [x] Build passes with no TypeScript errors
+**Latest Changes (January 8, 2026):**
+- [x] Fixed email API response format (`success: true` field)
+- [x] Fixed scroll functionality in both email and bid panels
+- [x] Added concurrent LLM processing (max 15 parallel calls)
+- [x] Added process single email functionality
+- [x] Added Download JSON button for exporting bid results
+- [x] Header shows connected Gmail account with disconnect option
+- [x] PostCSS configured with `@tailwindcss/postcss`
 
 **Implementation Details:**
-- **Header:** BuildVision logo + "Email BDC Agent" title + Process/Refresh buttons
-- **Left Panel (400px):** Email list with inline viewer (click to expand)
-- **Right Panel (flexible):** Bid list grouped by date (Today, Tomorrow, This Week, etc.)
-- **Data Flow:** Process Emails button triggers Extract → Cluster → createGroupedBidList()
-- **Bid Cards:** Show project name, address, bidder, seller, due date
+- **Header:** BuildVision logo + "Email BDC Agent" title + stats + Download JSON + connection status
+- **Left Panel (400px):** Email list with inline viewer, Process All button, Refresh button
+- **Right Panel (flexible):** Bid list grouped by date (Overdue, Today, Tomorrow, This Week, etc.)
+- **Data Flow:** Process Emails → Extract (15 concurrent) → Cluster → createGroupedBidList()
+- **Scroll Fix:** Added `min-h-0` to flex containers and `overflow-y-auto` to ScrollArea viewport
 
 ---
 
-## Stage 2 Implementation Summary
+## Recent Session Work
 
-### Files Created
+### Session: January 8, 2026 (Late)
 
-| File | Purpose |
-|------|---------|
-| `lib/extraction/schemas.ts` | Zod validation schemas for all extraction types |
-| `lib/extraction/index.ts` | Extraction service using Gemini 3 Pro Preview |
-| `app/api/extract/route.ts` | POST endpoint for entity extraction |
-| `components/extraction/ExtractionCard.tsx` | UI for displaying extraction results |
-| `components/extraction/index.ts` | Component exports |
+**Issues Addressed:**
+1. "Failed to fetch emails" error - API returned `{ emails }` but UI expected `{ success: true, emails }`
+2. Scroll not working in email panel (only when email selected)
+3. Scroll not working in bid list panel
 
-### Architecture
+**Fixes Applied:**
+1. Updated `/api/emails/route.ts` to include `success: true` in all responses
+2. Added `overflow-y-auto` to ScrollArea viewport component
+3. Added `min-h-0` to all flex containers in EmailPanel, BidList, and page.tsx
 
-```
-Email → /api/extract → Gemini 3 Pro Preview → Zod Validation → ExtractedData
-                                                                    ↓
-                                                          ExtractionCard UI
-```
-
-### Extracted Entities
-
-1. **PurchaserIdentity**: Company name, contact name/email/phone
-2. **ProjectSignals**: Project name, address, GC, engineer, architect
-3. **BidDueDates**: Date, time, timezone, source (explicit/inferred), raw text
-
-All entities include confidence scores (0.0-1.0).
+**Commits:**
+- `a00489d` - feat: Stage 5 UI improvements and fixes
+- `a17fb66` - fix: scroll functionality in email and bid panels
 
 ---
 
@@ -79,6 +67,7 @@ All entities include confidence scores (0.0-1.0).
 | Provider | Model | Status |
 |----------|-------|--------|
 | Google | `gemini-3-pro-preview` | ✅ Active - Primary extraction |
+| Google | `gemini-3-flash-preview` | ✅ Active - Fast tier (clustering) |
 | OpenAI | `gpt-5.2` | ⏸️ Available |
 | Anthropic | `claude-sonnet-4-5-20250929` | ⏸️ Available |
 
@@ -88,12 +77,10 @@ All entities include confidence scores (0.0-1.0).
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-01-08 | Stage 4 complete | AI-assisted clustering implemented |
-| 2026-01-08 | Use Gemini Flash for clustering | Speed optimized for bulk processing |
-| 2026-01-08 | Added FAST_MODELS tier | Centralized fast model config for speed tasks |
-| 2026-01-08 | Hybrid clustering approach | Rule-based + AI for best accuracy |
-| 2026-01-08 | Stage 2 complete and tested | Extraction working with real emails |
-| 2026-01-08 | Skip database persistence | Will integrate with main app for production |
+| 2026-01-08 | Add `success` field to all API responses | Consistent API response format for frontend |
+| 2026-01-08 | Use `min-h-0` for flex scroll containers | Flexbox requires this to allow shrinking below content height |
+| 2026-01-08 | 15 concurrent LLM calls | Balance between speed and API rate limits |
+| 2026-01-08 | Stage 5 complete | Demo UI fully functional |
 
 ---
 
@@ -128,29 +115,24 @@ All entities include confidence scores (0.0-1.0).
 - Extraction service with Gemini 3 Pro Preview
 - /api/extract API endpoint
 - ExtractionCard UI component
-- Integration with main page (3-column layout)
-- Tested with real bid emails
 
 ### Stage 3: Seller Inference ✅
 - Seller types and Zod schemas
 - Email recipient pattern matching
 - @buildvision.io domain detection
-- Confidence scoring by field type
 
 ### Stage 4: Project Clustering ✅
-- Clustering types and schemas
-- Similarity calculation (string-similarity)
 - AI-assisted clustering with Gemini Flash
 - Rule-based clustering with Union-Find
 - /api/cluster API endpoint
 
 ### Stage 5: Demo UI ✅
-- BuildVision Labs Header (from Takeoffs)
-- Side-by-side panel layout
-- Left panel: EmailPanel (list + inline viewer)
-- Right panel: BidList grouped by date
-- Bid cards with project, bidder, seller, due date
-- Process Emails workflow (Extract → Cluster → Display)
+- BuildVision Labs Header with connection status
+- Side-by-side panel layout with proper scrolling
+- EmailPanel with process buttons
+- BidList grouped by date
+- Concurrent LLM processing
+- JSON export functionality
 
 ---
 
@@ -160,8 +142,7 @@ All entities include confidence scores (0.0-1.0).
 
 - Gmail integration working with bids@buildvision.io
 - Repository: `git@github.com:mrhoo2/email-bdc-agent.git`
-- Extraction tested successfully on "Byron WWTP - Improvements" email
-- Version: v0.2.0 (Stage 2 complete)
-- UI: 3-column layout - Email List | Email Viewer | Extraction Card
-*Session notes and context that should carry forward to next session.*
-
+- Latest commit: `a17fb66` (scroll fixes)
+- All stages complete - ready for production integration or additional features
+- PostCSS configuration: `postcss.config.mjs` with `@tailwindcss/postcss`
+- Side-by-side panel layout
